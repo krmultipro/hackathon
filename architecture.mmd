@@ -1,0 +1,106 @@
+erDiagram
+    PLAYER {
+        bigint player_id PK
+        string username
+        string password
+        int global_elo
+        datetime created_at
+    }
+
+    SUBJECT {
+        bigint subject_id PK
+        string name
+        string description
+    }
+
+    TOPIC {
+        bigint topic_id PK
+        bigint subject_id FK
+        string name
+        string description
+    }
+
+    COURSE {
+        bigint course_id PK
+        bigint topic_id FK
+        string title
+        string content_url
+        datetime creation_date
+    }
+
+    QUESTION {
+        bigint question_id PK
+        bigint topic_id FK
+        string statement
+        string answer_type
+        int min_elo
+        int max_elo
+        int time_limit
+        datetime creation_date
+    }
+
+    POSSIBLE_ANSWER {
+        bigint possible_answer_id PK
+        bigint question_id FK
+        string answer_text
+        boolean is_correct
+    }
+
+    MATCH {
+        bigint match_id PK
+        bigint player1_id FK
+        bigint player2_id FK
+        bigint subject_id FK
+        bigint winner_id FK
+        int score_player1
+        int score_player2
+        int player1_elo_before
+        int player1_elo_after
+        int player2_elo_before
+        int player2_elo_after
+    }
+
+    MATCH_QUESTION {
+        bigint match_question_id PK
+        bigint match_id FK
+        bigint question_id FK
+    }
+
+    MATCH_ANSWER {
+        bigint match_answer_id PK
+        bigint match_question_id FK
+        bigint player_id FK
+        string given_answer
+        boolean is_correct
+        int response_time
+        datetime answer_timestamp
+    }
+
+    ELO_RATING {
+        bigint player_id FK
+        bigint subject_id FK
+        int elo
+        int match_count
+        int wins
+        int losses
+        datetime updated_at
+    }
+
+    SUBJECT ||--o{ TOPIC : contains
+    TOPIC ||--o{ COURSE : contains
+    TOPIC ||--o{ QUESTION : contains
+    QUESTION ||--o{ POSSIBLE_ANSWER : has
+
+    PLAYER ||--o{ MATCH : plays_as_player1
+    PLAYER ||--o{ MATCH : plays_as_player2
+    PLAYER ||--o{ MATCH : wins
+    SUBJECT ||--o{ MATCH : category
+
+    MATCH ||--o{ MATCH_QUESTION : includes
+    QUESTION ||--o{ MATCH_QUESTION : selected_for
+
+    MATCH_QUESTION ||--o{ MATCH_ANSWER : receives
+    PLAYER ||--o{ MATCH_ANSWER : submits
+
+    PLAYER ||--o{ ELO_RATING : has
+    SUBJECT ||--o{ ELO_RATING : ranks
