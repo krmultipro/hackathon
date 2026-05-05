@@ -1,0 +1,37 @@
+/* ─── Reset mobile-first ─────────────────────────────────────── */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    /* Empêche le scroll et le rebond sur iOS */
+    overflow: hidden;
+    overscroll-behavior: none;
+    /* Désactive le zoom et les gestes tactiles parasites */
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+body {
+    background: #0d0d1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Respecte les encoches et barres de navigation (iOS safe area) */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+canvas {
+    display: block;
+    /* Le canvas ne doit jamais déclencher de scroll ou zoom */
+    touch-action: none;
+    /* Évite le flou sur les écrans haute densité */
+    image-rendering: auto;
+}
