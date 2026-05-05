@@ -1,0 +1,12 @@
+{
+  "name": "mon-jeu-phaser",
+  "version": "1.0.0",
+  "description": "Projet Phaser 3",
+  "scripts": {
+    "dev": "npx serve . -p 8080",
+    "start": "npx serve . -p 8080"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}
