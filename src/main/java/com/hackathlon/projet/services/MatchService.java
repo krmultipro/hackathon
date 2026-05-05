@@ -1,11 +1,12 @@
 package com.hackathlon.projet.services;
 
-import com.hackathlon.projet.model.Match;
-import com.hackathlon.projet.repository.MatchRepository;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import com.hackathlon.projet.model.Match;
+import com.hackathlon.projet.repository.MatchRepository;
 
 @Service
 public class MatchService {
@@ -43,7 +44,8 @@ public class MatchService {
     }
 
     public boolean delete(Long id) {
-        if (!matchRepository.existsById(id)) return false;
+        if (!matchRepository.existsById(id))
+            return false;
         matchRepository.deleteById(id);
         return true;
     }
