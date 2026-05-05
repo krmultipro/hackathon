@@ -1,8 +1,23 @@
+import { loadQuestions } from '../modules/course/courseService.js';
+import {
+    createMatchState,
+    getFeedbackText,
+    getPlayerStateText,
+    getWinnerLabel,
+    isGameOver,
+    resolveRound,
+    shouldResolveRound,
+    startRound,
+    submitAnswer,
+    tick
+} from '../modules/match/matchLogic.js';
+import { MATCH_DEFAULTS } from '../utils/constants.js';
+
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
-        this.maxHp = 10;
-        this.timePerQuestion = 30;
+        this.maxHp = MATCH_DEFAULTS.MAX_HP;
+        this.timePerQuestion = MATCH_DEFAULTS.TIME_PER_QUESTION;
     }
 
     init(data) {
@@ -16,6 +31,13 @@ export default class GameScene extends Phaser.Scene {
     create() {
         const { width, height } = this.scale;
 
+        this.questions = loadQuestions(this.subject);
+        this.matchState = createMatchState({
+            maxHp: this.maxHp,
+            timePerQuestion: this.timePerQuestion,
+            questions: this.questions
+        });
+
         this.bg = this.add.rectangle(0, 0, 1, 1, 0x101626).setOrigin(0);
 
         const p1tex = this.p1char === 'boy' ? 'p1boy' : 'p1girl';
@@ -24,43 +46,16 @@ export default class GameScene extends Phaser.Scene {
         this.leftFighter = this.add.image(0, 0, p1tex);
         this.rightFighter = this.add.image(0, 0, p2tex).setFlipX(true);
 
-        this.leftHp = this.maxHp;
-        this.rightHp = this.maxHp;
-        this.timeLeft = this.timePerQuestion;
-        this.roundLocked = false;
-        this.leftAnswer = null;
-        this.rightAnswer = null;
-
-        const mathQuestions = [
-            { q: 'Combien font 7 x 8 ?', choices: ['54', '56', '58', '64'], a: 1 },
-            { q: 'Quelle est la racine carree de 81 ?', choices: ['7', '8', '9', '10'], a: 2 },
-            { q: 'Combien font 15 - 9 ?', choices: ['5', '6', '7', '8'], a: 1 },
-            { q: 'Quelle fraction est equivalente a 1/2 ?', choices: ['2/3', '3/6', '4/10', '5/8'], a: 1 },
-            { q: 'Combien font 12 + 13 ?', choices: ['23', '24', '25', '26'], a: 2 },
-            { q: 'Combien font 6 x 6 ?', choices: ['30', '32', '34', '36'], a: 3 }
-        ];
-
-        const frenchQuestions = [
-            { q: 'Quel est le pluriel de cheval ?', choices: ['chevals', 'chevaux', 'chevaus', 'chevails'], a: 1 },
-            { q: 'Choisis le verbe correctement conjugue.', choices: ['Nous mange', 'Nous manges', 'Nous mangeons', 'Nous manger'], a: 2 },
-            { q: 'Quel mot est un adjectif ?', choices: ['courir', 'rapidement', 'bleu', 'maison'], a: 2 },
-            { q: 'Quel est le contraire de heureux ?', choices: ['content', 'triste', 'joyeux', 'souriant'], a: 1 },
-            { q: 'Dans "Les enfants jouent", le sujet est :', choices: ['jouent', 'enfants', 'Les enfants', 'les'], a: 2 },
-            { q: 'Quel mot est bien orthographie ?', choices: ['apparament', 'apparement', 'apparemment', 'aparament'], a: 2 }
-        ];
-
-        this.questions = this.subject === 'fr' ? frenchQuestions : mathQuestions;
-
         this.turnText = this.add.text(0, 0, 'Mode simultane', {
             font: '24px Arial',
             fill: '#f2c94c'
         }).setOrigin(0.5);
 
-        this.timerBarBg  = this.add.graphics();
-        this.timerBar    = this.add.graphics();
+        this.timerBarBg = this.add.graphics();
+        this.timerBar = this.add.graphics();
         this.timerBarGlow = this.add.graphics().setBlendMode(Phaser.BlendModes.ADD);
 
-        this.leftHpGfx  = this.add.graphics();
+        this.leftHpGfx = this.add.graphics();
         this.rightHpGfx = this.add.graphics();
 
         this.sceneBg = this.add.image(0, 0, 'sceneBg').setAlpha(0.2).setDepth(0);
@@ -100,20 +95,13 @@ export default class GameScene extends Phaser.Scene {
 
         this.backButton.on('pointerover', () => this.backButton.setStyle({ fill: '#ffffff' }));
         this.backButton.on('pointerout', () => this.backButton.setStyle({ fill: '#aaaaaa' }));
-        this.backButton.on('pointerdown', () => this.scene.start(this.previousScene, {
-            subject: this.subject,
-            previousScene: this.characterSelectPreviousScene
-        }));
+        this.backButton.on('pointerdown', () => this.goBack());
 
         this.keys = this.input.keyboard.addKeys({
             esc: Phaser.Input.Keyboard.KeyCodes.ESC
         });
 
-        // Retour page précédente (Echap)
-        this.input.keyboard.on('keydown-ESC', () => this.scene.start(this.previousScene, {
-            subject: this.subject,
-            previousScene: this.characterSelectPreviousScene
-        }));
+        this.input.keyboard.on('keydown-ESC', () => this.goBack());
         this.escText = this.add.text(0, 0, '[ESC] Retour', {
             font: '14px Arial',
             fill: '#aaaaaa'
@@ -136,10 +124,20 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
-    _onResize(gameSize) {
-        if (this._resizeTimer) { this._resizeTimer.remove(); }
+    goBack() {
+        this.scene.start(this.previousScene, {
+            subject: this.subject,
+            previousScene: this.characterSelectPreviousScene
+        });
+    }
+
+    _onResize() {
+        if (this._resizeTimer) {
+            this._resizeTimer.remove();
+        }
+
         this._resizeTimer = this.time.delayedCall(150, () => {
-            const width  = window.innerWidth;
+            const width = window.innerWidth;
             const height = window.innerHeight;
             this.scale.resize(width, height);
             this._createAnswerButtons(width, height);
@@ -159,8 +157,8 @@ export default class GameScene extends Phaser.Scene {
         this._heartSize = hSize;
         this.leftHpGfx.setPosition(12, 10);
         this.rightHpGfx.setPosition(width - 12, 10);
-        this._drawHearts(this.leftHpGfx,  this.leftHp,  this.maxHp, hSize, false);
-        this._drawHearts(this.rightHpGfx, this.rightHp, this.maxHp, hSize, true);
+        this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, hSize, false);
+        this._drawHearts(this.rightHpGfx, this.matchState.rightHp, this.matchState.maxHp, hSize, true);
 
         const barW = width * 0.5;
         const barH = Phaser.Math.Clamp(Math.round(height * 0.028), 12, 22);
@@ -171,7 +169,7 @@ export default class GameScene extends Phaser.Scene {
         this._timerBarH = barH;
         this._timerBarY = barY;
         this._timerBarX = width / 2;
-        // Fond arrondi
+
         const r = barH / 2;
         this.timerBarBg.clear();
         this.timerBarBg.fillStyle(0x0a0a1a, 0.7);
@@ -186,7 +184,6 @@ export default class GameScene extends Phaser.Scene {
         const scaleL = targetCharH / leftImg.height;
         const scaleR = targetCharH / rightImg.height;
 
-        // Calcul de la position des boutons pour aligner les personnages au-dessus
         const btnPad = 10;
         const btnH = Math.min(isMobile ? 72 : 68, height * (isMobile ? 0.09 : 0.1));
         const gridH = 2 * btnH + 3 * btnPad;
@@ -194,7 +191,7 @@ export default class GameScene extends Phaser.Scene {
         const sideW = width * (isMobile ? 0.46 : 0.22);
 
         const fighterY = gridTop - targetCharH / 2 - 28;
-        const fighterXLeft  = sideW / 2;
+        const fighterXLeft = sideW / 2;
         const fighterXRight = width - sideW / 2;
 
         this.leftFighter.setPosition(fighterXLeft, fighterY).setScale(scaleL);
@@ -204,9 +201,9 @@ export default class GameScene extends Phaser.Scene {
         const blockWidth = isMobile ? width * 0.8 : width * 0.5;
 
         this.sceneBg.setPosition(width / 2, height / 2);
-        const bgScaleW = width  / this.sceneBg.width;
+        const bgScaleW = width / this.sceneBg.width;
         const bgScaleH = height / this.sceneBg.height;
-        const bgScale  = Math.max(bgScaleW, bgScaleH);
+        const bgScale = Math.max(bgScaleW, bgScaleH);
         this.sceneBg.setScale(bgScale);
 
         this.questionText
@@ -236,72 +233,59 @@ export default class GameScene extends Phaser.Scene {
     }
 
     update() {
-        if (this.roundLocked) {
+        if (this.matchState.roundLocked) {
             return;
         }
     }
 
     onTick() {
-        if (this.roundLocked) {
-            return;
-        }
-
-        this.timeLeft -= 1;
+        const result = tick(this.matchState);
         this.updateUi();
 
-        if (this.timeLeft <= 0) {
-            this.resolveRound();
+        if (result.resolved) {
+            this.afterRoundResolution(result);
         }
     }
 
     startRound() {
-        this.roundLocked = false;
-        this.timeLeft = this.timePerQuestion;
-        this.leftAnswer = null;
-        this.rightAnswer = null;
-        this.currentQuestion = Phaser.Utils.Array.GetRandom(this.questions);
+        startRound(this.matchState);
         this.feedbackText.setText('');
         this._resetButtonStates();
         this.updateUi();
     }
 
     updateUi() {
-        const leftState  = this.leftAnswer  === null ? 'en attente' : 'valide';
-        const rightState = this.rightAnswer === null ? 'en attente' : 'valide';
-        this.turnText.setText(`J1: ${leftState}  |  J2: ${rightState}`);
-        this._drawHearts(this.leftHpGfx,  this.leftHp,  this.maxHp, this._heartSize || 16, false);
-        this._drawHearts(this.rightHpGfx, this.rightHp, this.maxHp, this._heartSize || 16, true);
+        this.turnText.setText(getPlayerStateText(this.matchState));
+        this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, this._heartSize || 16, false);
+        this._drawHearts(this.rightHpGfx, this.matchState.rightHp, this.matchState.maxHp, this._heartSize || 16, true);
 
-        const ratio = this.timeLeft / this.timePerQuestion;
+        const ratio = this.matchState.timeLeft / this.matchState.timePerQuestion;
         const fullW = this._timerBarW || 200;
-        const barH  = this._timerBarH || 16;
-        const barY  = this._timerBarY || 100;
-        const barX  = this._timerBarX || (this.scale.width / 2);
+        const barH = this._timerBarH || 16;
+        const barY = this._timerBarY || 100;
+        const barX = this._timerBarX || (this.scale.width / 2);
         const filledW = Math.max(0, fullW * ratio);
         const r = barH / 2;
-        const color   = ratio > 0.5 ? 0x56ccf2 : ratio > 0.25 ? 0xf2c94c : 0xeb5757;
+        const color = ratio > 0.5 ? 0x56ccf2 : ratio > 0.25 ? 0xf2c94c : 0xeb5757;
         const colorHi = ratio > 0.5 ? 0x9ef0ff : ratio > 0.25 ? 0xffe080 : 0xff9090;
 
         this.timerBar.clear();
         if (filledW > 0) {
-            // ombre intérieure
             this.timerBar.fillStyle(0x000000, 0.3);
             this.timerBar.fillRoundedRect(barX - fullW / 2 + 1, barY - barH / 2 + 2, filledW - 1, barH - 2, r);
-            // barre principale
             this.timerBar.fillStyle(color, 1);
             this.timerBar.fillRoundedRect(barX - fullW / 2, barY - barH / 2, filledW, barH, r);
-            // reflet haut
             this.timerBar.fillStyle(0xffffff, 0.18);
             this.timerBar.fillRoundedRect(barX - fullW / 2 + 2, barY - barH / 2 + 2, filledW - 4, barH * 0.38, r * 0.5);
         }
 
-        // Lueur pulsante sur le bord droit
         this.timerBarGlow.clear();
         if (filledW > 4) {
             this.timerBarGlow.fillStyle(colorHi, 0.45);
             this.timerBarGlow.fillCircle(barX - fullW / 2 + filledW, barY, barH * 0.7);
         }
-        this.questionText.setText(this.currentQuestion.q);
+
+        this.questionText.setText(this.matchState.currentQuestion ? this.matchState.currentQuestion.q : '');
 
         for (let i = 0; i < 4; i += 1) {
             this.choiceTexts[i].setText('');
@@ -309,54 +293,35 @@ export default class GameScene extends Phaser.Scene {
         this._refreshButtonLabels();
 
         if (this.p1Buttons) {
-            const locked = this.leftAnswer !== null;
-            this.p1Buttons.forEach(({ gfx, lbl, zone, cx, cy, fillNorm, fillHover, stroke }) => {
+            const locked = this.matchState.leftAnswer !== null;
+            this.p1Buttons.forEach(({ gfx, lbl }) => {
                 gfx.setAlpha(locked ? 0.35 : 1);
                 lbl.setAlpha(locked ? 0.4 : 1);
             });
         }
+
         if (this.p2Buttons) {
-            const locked = this.rightAnswer !== null;
-            this.p2Buttons.forEach(({ gfx, lbl, zone, cx, cy, fillNorm, fillHover, stroke }) => {
+            const locked = this.matchState.rightAnswer !== null;
+            this.p2Buttons.forEach(({ gfx, lbl }) => {
                 gfx.setAlpha(locked ? 0.35 : 1);
                 lbl.setAlpha(locked ? 0.4 : 1);
             });
         }
     }
 
-    resolveRound() {
-        if (this.roundLocked) {
-            return;
-        }
-        this.roundLocked = true;
-
-        const leftCorrect = this.leftAnswer === this.currentQuestion.a;
-        const rightCorrect = this.rightAnswer === this.currentQuestion.a;
-        const feedbackParts = [];
-
-        if (this.leftAnswer === null) {
-            feedbackParts.push('Gauche: temps ecoule');
-        } else if (leftCorrect) {
-            this.rightHp = Math.max(0, this.rightHp - 1);
+    afterRoundResolution(result) {
+        if (result.rightTookDamage) {
             this.flashFighter(this.rightFighter);
-            feedbackParts.push('Gauche: bonne reponse, 1 degat');
-        } else {
-            feedbackParts.push('Gauche: mauvaise reponse');
         }
 
-        if (this.rightAnswer === null) {
-            feedbackParts.push('Droite: temps ecoule');
-        } else if (rightCorrect) {
-            this.leftHp = Math.max(0, this.leftHp - 1);
+        if (result.leftTookDamage) {
             this.flashFighter(this.leftFighter);
-            feedbackParts.push('Droite: bonne reponse, 1 degat');
-        } else {
-            feedbackParts.push('Droite: mauvaise reponse');
         }
 
-        this.feedbackText.setText(feedbackParts.join(' | '));
+        this.feedbackText.setText(result.feedbackText);
+        this.updateUi();
 
-        if (this.leftHp <= 0 || this.rightHp <= 0) {
+        if (result.gameOver) {
             this.endGame();
             return;
         }
@@ -378,8 +343,9 @@ export default class GameScene extends Phaser.Scene {
 
     _checkBothAnswered() {
         this.updateUi();
-        if (this.leftAnswer !== null && this.rightAnswer !== null) {
-            this.resolveRound();
+        if (shouldResolveRound(this.matchState)) {
+            const result = resolveRound(this.matchState);
+            this.afterRoundResolution(result);
         }
     }
 
@@ -398,7 +364,7 @@ export default class GameScene extends Phaser.Scene {
     _drawHeart(gfx, x, y, s, filled) {
         const cx = x + s / 2;
         const cy = y + s / 2;
-        const r  = s * 0.26;
+        const r = s * 0.26;
         gfx.fillStyle(filled ? 0xff4757 : 0x222244, 1);
         gfx.fillCircle(cx - r * 0.92, cy - r * 0.5, r);
         gfx.fillCircle(cx + r * 0.92, cy - r * 0.5, r);
@@ -407,7 +373,7 @@ export default class GameScene extends Phaser.Scene {
         gfx.fillTriangle(
             cx - hw, cy - r * 0.1,
             cx + hw, cy - r * 0.1,
-            cx,      cy + hh
+            cx, cy + hh
         );
         if (filled) {
             gfx.fillStyle(0xff8fa3, 0.5);
@@ -464,16 +430,20 @@ export default class GameScene extends Phaser.Scene {
             this._drawBtn(gfx, cx, cy, btnW, btnH, fillNorm, stroke, 1);
 
             const zone = this.add.zone(cx, cy, btnW, btnH).setInteractive({ useHandCursor: true });
-            zone.on('pointerover',  () => { this._drawBtn(gfx, cx, cy, btnW, btnH, fillHover, stroke, 1); });
-            zone.on('pointerout',   () => { this._drawBtn(gfx, cx, cy, btnW, btnH, fillNorm,  stroke, 1); });
-            zone.on('pointerdown',  () => {
+            zone.on('pointerover', () => {
+                this._drawBtn(gfx, cx, cy, btnW, btnH, fillHover, stroke, 1);
+            });
+            zone.on('pointerout', () => {
+                this._drawBtn(gfx, cx, cy, btnW, btnH, fillNorm, stroke, 1);
+            });
+            zone.on('pointerdown', () => {
                 this._drawBtn(gfx, cx, cy, btnW, btnH, fillHover, stroke, 1);
                 this.tweens.add({ targets: [gfx, lbl], scaleX: 0.93, scaleY: 0.93, duration: 70, yoyo: true });
                 onPress();
             });
 
             const lbl = this.add.text(cx, cy, '', { font: fontSize, fill: '#ffffff' }).setOrigin(0.5).setDepth(1);
-            return { gfx, lbl, zone, cx, cy, fillNorm, fillHover, stroke };
+            return { gfx, lbl, zone };
         };
 
         for (let i = 0; i < 4; i += 1) {
@@ -483,8 +453,8 @@ export default class GameScene extends Phaser.Scene {
 
             const cx1 = pad + col * (btnW + pad) + btnW / 2;
             const btn1 = makeBtn(cx1, cy, 0x1a3d7a, 0x2a5db0, 0x56ccf2, () => {
-                if (!this.roundLocked && this.leftAnswer === null) {
-                    this.leftAnswer = i;
+                const changed = submitAnswer(this.matchState, 'left', i);
+                if (changed) {
                     this._checkBothAnswered();
                 }
             });
@@ -492,22 +462,24 @@ export default class GameScene extends Phaser.Scene {
 
             const cx2 = width - pad - (cols - 1 - col) * (btnW + pad) - btnW / 2;
             const btn2 = makeBtn(cx2, cy, 0x7a1a1a, 0xb02a2a, 0xff7675, () => {
-                if (!this.roundLocked && this.rightAnswer === null) {
-                    this.rightAnswer = i;
+                const changed = submitAnswer(this.matchState, 'right', i);
+                if (changed) {
                     this._checkBothAnswered();
                 }
             });
             this.p2Buttons.push(btn2);
         }
 
-        // Mettre à jour les labels avec les choix courants
         this._refreshButtonLabels();
     }
 
     _refreshButtonLabels() {
-        if (!this.p1Buttons || !this.currentQuestion) { return; }
-        for (let i = 0; i < 4; i++) {
-            const txt = this.currentQuestion.choices[i];
+        if (!this.p1Buttons || !this.matchState.currentQuestion) {
+            return;
+        }
+
+        for (let i = 0; i < 4; i += 1) {
+            const txt = this.matchState.currentQuestion.choices[i];
             this._fitAnswerLabel(this.p1Buttons[i].lbl, txt);
             this._fitAnswerLabel(this.p2Buttons[i].lbl, txt);
         }
@@ -529,7 +501,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _resetButtonStates() {
-        if (!this.p1Buttons) { return; }
+        if (!this.p1Buttons) {
+            return;
+        }
+
         [...this.p1Buttons, ...this.p2Buttons].forEach(({ gfx, lbl }) => {
             gfx.setAlpha(1);
             lbl.setAlpha(1);
@@ -537,22 +512,13 @@ export default class GameScene extends Phaser.Scene {
         this._refreshButtonLabels();
     }
 
-
-
     endGame() {
-        this.roundLocked = true;
+        this.matchState.roundLocked = true;
         this.timerEvent.remove(false);
-        let winner = 'Egalite';
-        if (this.leftHp > this.rightHp) {
-            winner = 'Joueur gauche';
-        }
-        if (this.rightHp > this.leftHp) {
-            winner = 'Joueur droite';
-        }
-
-        this.questionText.setText(`Victoire: ${winner}`);
+        this.questionText.setText(`Victoire: ${getWinnerLabel(this.matchState)}`);
         this.choiceTexts.forEach((choiceText) => choiceText.setText(''));
         this.turnText.setText('Partie terminee');
         this.feedbackText.setText('Appuyez sur ESC ou utilisez le bouton RETOUR');
     }
 }
+
