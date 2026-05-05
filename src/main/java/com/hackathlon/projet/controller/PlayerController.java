@@ -41,9 +41,7 @@ public class PlayerController {
         @GetMapping("/{id}")
         public ResponseEntity<Player> getById(
                         @Parameter(description = "ID du joueur", example = "1") @PathVariable Long id) {
-                return playerService.findById(id)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(playerService.findById(id));
         }
 
         @Operation(summary = "Obtenir un joueur par username", description = "Retourne un joueur à partir de son nom d'utilisateur")
@@ -54,9 +52,7 @@ public class PlayerController {
         @GetMapping("/by-username/{username}")
         public ResponseEntity<Player> getByUsername(
                         @Parameter(description = "Nom d'utilisateur", example = "alice123") @PathVariable String username) {
-                return playerService.findByUsername(username)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(playerService.findByUsername(username));
         }
 
         @Operation(summary = "Créer un joueur", description = "Crée un nouveau joueur")
@@ -81,9 +77,7 @@ public class PlayerController {
         public ResponseEntity<Player> update(
                         @Parameter(description = "ID du joueur", example = "1") @PathVariable Long id,
                         @RequestBody Player details) {
-                return playerService.update(id, details)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(playerService.update(id, details));
         }
 
         @Operation(summary = "Supprimer un joueur", description = "Supprime un joueur par ID")
@@ -94,8 +88,7 @@ public class PlayerController {
         @DeleteMapping("/{id}")
         public ResponseEntity<Void> delete(
                         @Parameter(description = "ID du joueur", example = "1") @PathVariable Long id) {
-                return playerService.delete(id)
-                                ? ResponseEntity.noContent().build()
-                                : ResponseEntity.notFound().build();
+                playerService.delete(id);
+                return ResponseEntity.noContent().build();
         }
 }
