@@ -2,7 +2,6 @@ package com.hackathlon.projet.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,27 +16,26 @@ public class MatchAnswer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Référence au match
-    @Column(name = "match_id", nullable = false)
-    private Long matchId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "match_id", nullable = false)
+    private Match match;
 
-    // Référence à la question dans le match
-    @Column(name = "match_question_id", nullable = false)
-    private Long matchQuestionId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "match_question_id", nullable = false)
+    private MatchQuestion matchQuestion;
 
-    // Référence au joueur
-    @Column(name = "player_id", nullable = false)
-    private Long playerId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "player_id", nullable = false)
+    private Player player;
 
-    // Réponse donnée par le joueur
     private String answer;
 
-    // Est-ce que la réponse est correcte ?
+    @Column(name = "is_correct")
     private Boolean isCorrect;
 
-    // Temps de réponse (en secondes ou ms)
+    @Column(name = "response_time")
     private Long responseTime;
 
-    // Date de réponse
+    @Column(name = "answered_at")
     private LocalDateTime answeredAt;
 }

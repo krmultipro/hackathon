@@ -11,14 +11,17 @@ public class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long questionId;
+    @Column(name = "question_id")
+    private Long id;
 
-    @Column(name = "topic_id", nullable = false)
-    private Long topicId;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "topic_id", nullable = false)
+    private Topic topic;
 
     private String statement;
 
-    private String answerType;
+    @Enumerated(EnumType.STRING)
+    private AnswerType answerType;
 
     private Integer minElo;
 
@@ -26,5 +29,6 @@ public class Question {
 
     private Integer timeLimit;
 
+    @Column(name = "creation_date")
     private LocalDateTime creationDate;
 }

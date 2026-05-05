@@ -1,18 +1,8 @@
 package com.hackathlon.projet.model;
 
-import java.time.LocalDateTime;
-
-import org.springframework.beans.factory.config.YamlProcessor.MatchStatus;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "matches")
@@ -23,26 +13,24 @@ public class Match {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Joueurs
-    @Column(name = "player1_id", nullable = false)
-    private Long player1Id;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "player1_id", nullable = false)
+    private Player player1;
 
-    @Column(name = "player2_id", nullable = false)
-    private Long player2Id;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "player2_id", nullable = false)
+    private Player player2;
 
-    // Scores
     private Integer scorePlayer1;
     private Integer scorePlayer2;
 
-    // Gagnant
-    @Column(name = "winner_id")
-    private Long winnerId;
+    @ManyToOne
+    @JoinColumn(name = "winner_id")
+    private Player winner;
 
-    // Statut du match
     @Enumerated(EnumType.STRING)
     private MatchStatus status;
 
-    // Date
     private LocalDateTime createdAt;
 
     private LocalDateTime finishedAt;
