@@ -1,5 +1,6 @@
 package com.hackathlon.projet.controller;
 
+import com.hackathlon.projet.dto.LeaderboardEntryResponse;
 import com.hackathlon.projet.exception.NotFoundException;
 import com.hackathlon.projet.model.Player;
 import com.hackathlon.projet.services.PlayerService;
@@ -32,6 +33,15 @@ public class PlayerController {
         @GetMapping
         public List<Player> getAll() {
                 return playerService.findAll();
+        }
+
+        @Operation(summary = "Classement global", description = "Retourne le classement global des joueurs trie par ELO decroissant")
+        @ApiResponse(responseCode = "200", description = "Classement recupere avec succes")
+        @GetMapping("/leaderboard")
+        public List<LeaderboardEntryResponse> getLeaderboard(
+                        @Parameter(description = "Nombre maximum de joueurs a retourner", example = "10")
+                        @RequestParam(defaultValue = "10") int limit) {
+                return playerService.getGlobalLeaderboard(limit);
         }
 
         @Operation(summary = "Obtenir un joueur par ID", description = "Retourne un joueur à partir de son identifiant")

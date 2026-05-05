@@ -2,10 +2,12 @@ package com.hackathlon.projet.services;
 
 import com.hackathlon.projet.exception.BadRequestException;
 import com.hackathlon.projet.exception.NotFoundException;
+import com.hackathlon.projet.dto.LeaderboardEntryResponse;
 import com.hackathlon.projet.model.Player;
 import com.hackathlon.projet.repository.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 @Service
 public class PlayerService implements UserDetailsService {
@@ -43,6 +46,26 @@ public class PlayerService implements UserDetailsService {
 
     public List<Player> findAll() {
         return playerRepository.findAll();
+    }
+
+    public List<LeaderboardEntryResponse> getGlobalLeaderboard(int limit) {
+        int safeLimit = Math.max(1, Math.min(limit, 100));
+
+        List<Player> players = playerRepository.findAll(
+                Sort.by(
+                        Sort.Order.desc("globalElo"),
+                        Sort.Order.asc("username")));
+
+        return IntStream.range(0, Math.min(players.size(), safeLimit))
+                .mapToObj(index -> {
+                    Player player = players.get(index);
+                    return new LeaderboardEntryResponse(
+                            player.getId(),
+                            player.getUsername(),
+                            player.getGlobalElo() == null ? 0 : player.getGlobalElo(),
+                            index + 1);
+                })
+                .toList();
     }
 
     public Player getPlayerById(Long id) {
