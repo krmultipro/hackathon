@@ -1,7 +1,7 @@
 package com.hackathlon.projet.controller;
 
 import com.hackathlon.projet.model.Match;
-import com.hackathlon.projet.repository.MatchRepository;
+import com.hackathlon.projet.services.MatchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,24 +14,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/matches")
 @Tag(name = "Matches", description = "API de gestion des matchs")
 public class MatchController {
 
-    private final MatchRepository matchRepository;
+    private final MatchService matchService;
 
-    public MatchController(MatchRepository matchRepository) {
-        this.matchRepository = matchRepository;
+    public MatchController(MatchService matchService) {
+        this.matchService = matchService;
     }
 
     @Operation(summary = "Lister tous les matchs", description = "Retourne la liste complète des matchs")
     @ApiResponse(responseCode = "200", description = "Liste récupérée avec succès")
     @GetMapping
-    public ResponseEntity<List<Match>> getAllMatches() {
-        return ResponseEntity.ok(matchRepository.findAll());
+    public ResponseEntity<List<Match>> getAll() {
+        return ResponseEntity.ok(matchService.findAll());
     }
 
     @Operation(summary = "Obtenir un match par ID", description = "Retourne un match à partir de son identifiant")
@@ -41,11 +40,11 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "Match non trouvé")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Match> getMatchById(
+    public ResponseEntity<Match> getById(
             @Parameter(description = "ID du match", example = "1")
             @PathVariable Long id) {
-        Optional<Match> match = matchRepository.findById(id);
-        return match.map(ResponseEntity::ok)
+        return matchService.findById(id)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -55,13 +54,8 @@ public class MatchController {
             @ApiResponse(responseCode = "400", description = "Requête invalide")
     })
     @PostMapping
-    public ResponseEntity<Match> createMatch(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Données du match à créer",
-                    required = true)
-            @RequestBody Match match) {
-        Match savedMatch = matchRepository.save(match);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedMatch);
+    public ResponseEntity<Match> create(@RequestBody Match match) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(matchService.create(match));
     }
 
     @Operation(summary = "Mettre à jour un match", description = "Met à jour un match existant par ID")
@@ -70,30 +64,13 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "Match non trouvé")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<Match> updateMatch(
+    public ResponseEntity<Match> update(
             @Parameter(description = "ID du match", example = "1")
             @PathVariable Long id,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Nouvelles données du match",
-                    required = true)
-            @RequestBody Match matchDetails) {
-        Optional<Match> existingMatch = matchRepository.findById(id);
-        if (existingMatch.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Match match = existingMatch.get();
-        match.setPlayer1Id(matchDetails.getPlayer1Id());
-        match.setPlayer2Id(matchDetails.getPlayer2Id());
-        match.setScorePlayer1(matchDetails.getScorePlayer1());
-        match.setScorePlayer2(matchDetails.getScorePlayer2());
-        match.setWinnerId(matchDetails.getWinnerId());
-        match.setStatus(matchDetails.getStatus());
-        match.setCreatedAt(matchDetails.getCreatedAt());
-        match.setFinishedAt(matchDetails.getFinishedAt());
-
-        Match updatedMatch = matchRepository.save(match);
-        return ResponseEntity.ok(updatedMatch);
+            @RequestBody Match details) {
+        return matchService.update(id, details)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Supprimer un match", description = "Supprime un match par ID")
@@ -102,14 +79,11 @@ public class MatchController {
             @ApiResponse(responseCode = "404", description = "Match non trouvé")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMatch(
+    public ResponseEntity<Void> delete(
             @Parameter(description = "ID du match", example = "1")
             @PathVariable Long id) {
-        if (!matchRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
-        matchRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return matchService.delete(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }
