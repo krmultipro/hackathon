@@ -2,11 +2,7 @@ import { apiGet } from '../../utils/api.js';
 import { API_BASE_URL } from '../../utils/constants.js';
 
 export async function getGlobalLeaderboard() {
-    const players = await apiGet(`${API_BASE_URL}/players`);
-
-    return [...players]
-        .sort((left, right) => (right.globalElo || 0) - (left.globalElo || 0))
-        .slice(0, 10);
+    return apiGet(`${API_BASE_URL}/players/leaderboard?limit=10`);
 }
 
 export function getPlayerLeaderboard(playerId) {
