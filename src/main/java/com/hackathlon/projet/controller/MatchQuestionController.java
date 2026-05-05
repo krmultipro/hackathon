@@ -20,7 +20,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/match-questions")
-@Tag(name = "Match Questions", description = "Manage the links between matches and questions")
+@Tag(name = "Match Questions", description = "Gere les liens entre les matchs et les questions")
 public class MatchQuestionController {
 
     private final MatchQuestionRepository matchQuestionRepository;
@@ -31,8 +31,8 @@ public class MatchQuestionController {
 
     @GetMapping
     @Operation(
-            summary = "Get all match questions",
-            description = "Return the full list of match-question links."
+            summary = "Recuperer toutes les associations match-question",
+            description = "Retourne la liste complete des associations entre les matchs et les questions."
     )
     public ResponseEntity<List<MatchQuestion>> getAllMatchQuestions() {
         return ResponseEntity.ok(matchQuestionRepository.findAll());
@@ -40,8 +40,8 @@ public class MatchQuestionController {
 
     @GetMapping("/{id}")
     @Operation(
-            summary = "Get a match question by id",
-            description = "Return one match-question link using its id."
+            summary = "Recuperer une association match-question par identifiant",
+            description = "Retourne une association entre un match et une question a partir de son identifiant."
     )
     public ResponseEntity<MatchQuestion> getMatchQuestionById(@PathVariable Long id) {
         Optional<MatchQuestion> matchQuestion = matchQuestionRepository.findById(id);
@@ -51,8 +51,8 @@ public class MatchQuestionController {
 
     @PostMapping
     @Operation(
-            summary = "Create a match question",
-            description = "Create a new link between a match and a question."
+            summary = "Creer une association match-question",
+            description = "Cree une nouvelle association entre un match et une question."
     )
     public ResponseEntity<MatchQuestion> createMatchQuestion(@RequestBody MatchQuestion matchQuestion) {
         MatchQuestion savedMatchQuestion = matchQuestionRepository.save(matchQuestion);
@@ -61,8 +61,8 @@ public class MatchQuestionController {
 
     @PutMapping("/{id}")
     @Operation(
-            summary = "Update a match question",
-            description = "Update the match id and question id for an existing link."
+            summary = "Mettre a jour une association match-question",
+            description = "Met a jour l'identifiant du match et l'identifiant de la question pour une association existante."
     )
     public ResponseEntity<MatchQuestion> updateMatchQuestion(
             @PathVariable Long id,
@@ -83,8 +83,8 @@ public class MatchQuestionController {
 
     @DeleteMapping("/{id}")
     @Operation(
-            summary = "Delete a match question",
-            description = "Delete a match-question link by its id."
+            summary = "Supprimer une association match-question",
+            description = "Supprime une association entre un match et une question a partir de son identifiant."
     )
     public ResponseEntity<Void> deleteMatchQuestion(@PathVariable Long id) {
         if (!matchQuestionRepository.existsById(id)) {
