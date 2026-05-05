@@ -1,7 +1,7 @@
 package com.hackathlon.projet.controller;
 
 import com.hackathlon.projet.model.Player;
-import com.hackathlon.projet.repository.PlayerRepository;
+import com.hackathlon.projet.services.PlayerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +21,17 @@ import java.util.List;
 @Tag(name = "Players", description = "API de gestion des joueurs")
 public class PlayerController {
 
-    private final PlayerRepository playerRepository;
+    private final PlayerService playerService;
 
-    public PlayerController(PlayerRepository playerRepository) {
-        this.playerRepository = playerRepository;
+    public PlayerController(PlayerService playerService) {
+        this.playerService = playerService;
     }
 
     @Operation(summary = "Lister tous les joueurs", description = "Retourne la liste complète des joueurs")
     @ApiResponse(responseCode = "200", description = "Liste récupérée avec succès")
     @GetMapping
     public List<Player> getAll() {
-        return playerRepository.findAll();
+        return playerService.findAll();
     }
 
     @Operation(summary = "Obtenir un joueur par ID", description = "Retourne un joueur à partir de son identifiant")
@@ -43,7 +44,7 @@ public class PlayerController {
     public ResponseEntity<Player> getById(
             @Parameter(description = "ID du joueur", example = "1")
             @PathVariable Long id) {
-        return playerRepository.findById(id)
+        return playerService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -57,7 +58,7 @@ public class PlayerController {
     public ResponseEntity<Player> getByUsername(
             @Parameter(description = "Nom d'utilisateur", example = "alice123")
             @PathVariable String username) {
-        return playerRepository.findByUsername(username)
+        return playerService.findByUsername(username)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -68,14 +69,10 @@ public class PlayerController {
             @ApiResponse(responseCode = "400", description = "Requête invalide")
     })
     @PostMapping
-    public ResponseEntity<Player> create(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Données du joueur à créer",
-                    required = true)
-            @RequestBody Player player) {
-        Player saved = playerRepository.save(player);
+    public ResponseEntity<Player> create(@RequestBody Player player) {
+        Player saved = playerService.create(player);
         return ResponseEntity
-                .created(URI.create("/api/players/" + saved.getPlayerId()))
+                .created(URI.create("/api/players/" + saved.getId()))
                 .body(saved);
     }
 
@@ -88,19 +85,9 @@ public class PlayerController {
     public ResponseEntity<Player> update(
             @Parameter(description = "ID du joueur", example = "1")
             @PathVariable Long id,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Nouvelles données du joueur",
-                    required = true)
-            @RequestBody Player input) {
-        return playerRepository.findById(id)
-                .map(existing -> {
-                    existing.setUsername(input.getUsername());
-                    existing.setPassword(input.getPassword());
-                    existing.setGlobalElo(input.getGlobalElo());
-                    existing.setCreatedAt(input.getCreatedAt());
-                    Player updated = playerRepository.save(existing);
-                    return ResponseEntity.ok(updated);
-                })
+            @RequestBody Player details) {
+        return playerService.update(id, details)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -113,10 +100,8 @@ public class PlayerController {
     public ResponseEntity<Void> delete(
             @Parameter(description = "ID du joueur", example = "1")
             @PathVariable Long id) {
-        if (!playerRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        playerRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return playerService.delete(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

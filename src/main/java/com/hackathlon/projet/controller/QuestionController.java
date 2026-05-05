@@ -1,7 +1,7 @@
 package com.hackathlon.projet.controller;
 
 import com.hackathlon.projet.model.Question;
-import com.hackathlon.projet.repository.QuestionRepository;
+import com.hackathlon.projet.services.QuestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,17 +21,17 @@ import java.util.List;
 @Tag(name = "Questions", description = "API de gestion des questions")
 public class QuestionController {
 
-    private final QuestionRepository questionRepository;
+    private final QuestionService questionService;
 
-    public QuestionController(QuestionRepository questionRepository) {
-        this.questionRepository = questionRepository;
+    public QuestionController(QuestionService questionService) {
+        this.questionService = questionService;
     }
 
     @Operation(summary = "Lister toutes les questions", description = "Retourne la liste complète des questions")
     @ApiResponse(responseCode = "200", description = "Liste récupérée avec succès")
     @GetMapping
     public List<Question> getAll() {
-        return questionRepository.findAll();
+        return questionService.findAll();
     }
 
     @Operation(summary = "Obtenir une question par ID", description = "Retourne une question à partir de son identifiant")
@@ -43,7 +44,7 @@ public class QuestionController {
     public ResponseEntity<Question> getById(
             @Parameter(description = "ID de la question", example = "1")
             @PathVariable Long id) {
-        return questionRepository.findById(id)
+        return questionService.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -54,7 +55,7 @@ public class QuestionController {
     public List<Question> getByTopic(
             @Parameter(description = "ID du topic", example = "10")
             @PathVariable Long topicId) {
-        return questionRepository.findByTopicId(topicId);
+        return questionService.findByTopicId(topicId);
     }
 
     @Operation(summary = "Créer une question", description = "Crée une nouvelle question en base")
@@ -63,14 +64,10 @@ public class QuestionController {
             @ApiResponse(responseCode = "400", description = "Requête invalide")
     })
     @PostMapping
-    public ResponseEntity<Question> create(
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Données de la question à créer",
-                    required = true)
-            @RequestBody Question question) {
-        Question saved = questionRepository.save(question);
+    public ResponseEntity<Question> create(@RequestBody Question question) {
+        Question saved = questionService.create(question);
         return ResponseEntity
-                .created(URI.create("/api/questions/" + saved.getQuestionId()))
+                .created(URI.create("/api/questions/" + saved.getId()))
                 .body(saved);
     }
 
@@ -83,22 +80,9 @@ public class QuestionController {
     public ResponseEntity<Question> update(
             @Parameter(description = "ID de la question", example = "1")
             @PathVariable Long id,
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Nouvelles données de la question",
-                    required = true)
-            @RequestBody Question input) {
-        return questionRepository.findById(id)
-                .map(existing -> {
-                    existing.setTopicId(input.getTopicId());
-                    existing.setStatement(input.getStatement());
-                    existing.setAnswerType(input.getAnswerType());
-                    existing.setMinElo(input.getMinElo());
-                    existing.setMaxElo(input.getMaxElo());
-                    existing.setTimeLimit(input.getTimeLimit());
-                    existing.setCreationDate(input.getCreationDate());
-                    Question updated = questionRepository.save(existing);
-                    return ResponseEntity.ok(updated);
-                })
+            @RequestBody Question details) {
+        return questionService.update(id, details)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -111,10 +95,8 @@ public class QuestionController {
     public ResponseEntity<Void> delete(
             @Parameter(description = "ID de la question", example = "1")
             @PathVariable Long id) {
-        if (!questionRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        questionRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return questionService.delete(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 }

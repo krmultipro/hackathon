@@ -1,0 +1,50 @@
+package com.hackathlon.projet.services;
+
+import com.hackathlon.projet.model.Player;
+import com.hackathlon.projet.repository.PlayerRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class PlayerService {
+
+    private final PlayerRepository playerRepository;
+
+    public PlayerService(PlayerRepository playerRepository) {
+        this.playerRepository = playerRepository;
+    }
+
+    public List<Player> findAll() {
+        return playerRepository.findAll();
+    }
+
+    public Optional<Player> findById(Long id) {
+        return playerRepository.findById(id);
+    }
+
+    public Optional<Player> findByUsername(String username) {
+        return playerRepository.findByUsername(username);
+    }
+
+    public Player create(Player player) {
+        return playerRepository.save(player);
+    }
+
+    public Optional<Player> update(Long id, Player details) {
+        return playerRepository.findById(id).map(existing -> {
+            existing.setUsername(details.getUsername());
+            existing.setPassword(details.getPassword());
+            existing.setGlobalElo(details.getGlobalElo());
+            existing.setCreatedAt(details.getCreatedAt());
+            return playerRepository.save(existing);
+        });
+    }
+
+    public boolean delete(Long id) {
+        if (!playerRepository.existsById(id)) return false;
+        playerRepository.deleteById(id);
+        return true;
+    }
+}
