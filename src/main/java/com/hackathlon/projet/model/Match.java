@@ -1,3 +1,5 @@
+package com.hackathlon.projet.model;
+
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.config.YamlProcessor.MatchStatus;
