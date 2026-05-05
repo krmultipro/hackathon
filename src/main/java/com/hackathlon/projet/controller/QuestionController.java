@@ -41,9 +41,7 @@ public class QuestionController {
         @GetMapping("/{id}")
         public ResponseEntity<Question> getById(
                         @Parameter(description = "ID de la question", example = "1") @PathVariable Long id) {
-                return questionService.findById(id)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(questionService.findById(id));
         }
 
         @Operation(summary = "Lister les questions par topic", description = "Retourne toutes les questions d'un topic")
@@ -76,9 +74,7 @@ public class QuestionController {
         public ResponseEntity<Question> update(
                         @Parameter(description = "ID de la question", example = "1") @PathVariable Long id,
                         @RequestBody Question details) {
-                return questionService.update(id, details)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(questionService.update(id, details));
         }
 
         @Operation(summary = "Supprimer une question", description = "Supprime une question par son ID")
@@ -89,8 +85,7 @@ public class QuestionController {
         @DeleteMapping("/{id}")
         public ResponseEntity<Void> delete(
                         @Parameter(description = "ID de la question", example = "1") @PathVariable Long id) {
-                return questionService.delete(id)
-                                ? ResponseEntity.noContent().build()
-                                : ResponseEntity.notFound().build();
+                questionService.delete(id);
+                return ResponseEntity.noContent().build();
         }
 }
