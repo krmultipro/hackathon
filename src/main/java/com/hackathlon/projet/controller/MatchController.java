@@ -41,9 +41,7 @@ public class MatchController {
         @GetMapping("/{id}")
         public ResponseEntity<Match> getById(
                         @Parameter(description = "ID du match", example = "1") @PathVariable Long id) {
-                return matchService.findById(id)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(matchService.findById(id));
         }
 
         @Operation(summary = "Créer un match", description = "Crée un nouveau match")
@@ -65,9 +63,7 @@ public class MatchController {
         public ResponseEntity<Match> update(
                         @Parameter(description = "ID du match", example = "1") @PathVariable Long id,
                         @RequestBody Match details) {
-                return matchService.update(id, details)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(matchService.update(id, details));
         }
 
         @Operation(summary = "Supprimer un match", description = "Supprime un match par ID")
@@ -78,8 +74,7 @@ public class MatchController {
         @DeleteMapping("/{id}")
         public ResponseEntity<Void> delete(
                         @Parameter(description = "ID du match", example = "1") @PathVariable Long id) {
-                return matchService.delete(id)
-                                ? ResponseEntity.noContent().build()
-                                : ResponseEntity.notFound().build();
+                matchService.delete(id);
+                return ResponseEntity.noContent().build();
         }
 }
