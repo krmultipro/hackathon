@@ -88,13 +88,15 @@ export default class GameScene extends Phaser.Scene {
             fill: '#aaaaaa'
         }).setOrigin(0.5);
 
-        this.backButton = this.add.text(0, 0, '[ RETOUR ]', {
-            font: '18px Arial',
-            fill: '#aaaaaa'
+        this.backButton = this.add.text(0, 0, 'Retour', {
+            font: 'bold 18px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#1f4ed8',
+            padding: { x: 18, y: 10 }
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
-        this.backButton.on('pointerover', () => this.backButton.setStyle({ fill: '#ffffff' }));
-        this.backButton.on('pointerout', () => this.backButton.setStyle({ fill: '#aaaaaa' }));
+        this.backButton.on('pointerover', () => this.backButton.setStyle({ backgroundColor: '#2563eb' }));
+        this.backButton.on('pointerout', () => this.backButton.setStyle({ backgroundColor: '#1f4ed8' }));
         this.backButton.on('pointerdown', () => this.goBack());
 
         this.keys = this.input.keyboard.addKeys({
@@ -228,8 +230,11 @@ export default class GameScene extends Phaser.Scene {
             .setStyle({ font: fs(16, 10, 20) });
 
         this.backButton
-            .setPosition(12, height - 20)
-            .setStyle({ font: fs(16, 11, 20) });
+            .setPosition(12, height - (isMobile ? 30 : 20))
+            .setStyle({
+                font: `bold ${Phaser.Math.Clamp(Math.round((isMobile ? 18 : 16) * base / 600), isMobile ? 16 : 11, isMobile ? 24 : 20)}px Arial`,
+                padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
+            });
     }
 
     update() {
@@ -521,4 +526,3 @@ export default class GameScene extends Phaser.Scene {
         this.feedbackText.setText('Appuyez sur ESC ou utilisez le bouton RETOUR');
     }
 }
-

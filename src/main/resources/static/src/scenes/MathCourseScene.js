@@ -36,9 +36,11 @@ export default class MathCourseScene extends Phaser.Scene {
             fill: '#00ff88'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        this.backButton = this.add.text(0, 0, '[ RETOUR AUX MATIERES ]', {
-            font: '18px Arial',
-            fill: '#aaaaaa'
+        this.backButton = this.add.text(0, 0, 'Retour aux matieres', {
+            font: 'bold 18px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#1f4ed8',
+            padding: { x: 18, y: 10 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         this.duelButton.on('pointerover', () => this.duelButton.setStyle({ fill: '#ffffff' }));
@@ -48,8 +50,8 @@ export default class MathCourseScene extends Phaser.Scene {
             previousScene: 'MathCourseScene'
         }));
 
-        this.backButton.on('pointerover', () => this.backButton.setStyle({ fill: '#ffffff' }));
-        this.backButton.on('pointerout', () => this.backButton.setStyle({ fill: '#aaaaaa' }));
+        this.backButton.on('pointerover', () => this.backButton.setStyle({ backgroundColor: '#2563eb' }));
+        this.backButton.on('pointerout', () => this.backButton.setStyle({ backgroundColor: '#1f4ed8' }));
         this.backButton.on('pointerdown', () => this.scene.start('CourseScene'));
 
         this.input.keyboard.on('keydown-ESC', () => this.scene.start('CourseScene'));
@@ -73,6 +75,7 @@ export default class MathCourseScene extends Phaser.Scene {
     }
 
     _layout(width, height) {
+        const isMobile = width < 900 || height > width;
         const base = Math.min(width, height);
         const titleSize = Phaser.Math.Clamp(Math.round(base * 0.07), 24, 50);
         const lessonSize = Phaser.Math.Clamp(Math.round(base * 0.03), 14, 24);
@@ -95,7 +98,10 @@ export default class MathCourseScene extends Phaser.Scene {
             .setStyle({ font: `${duelSize}px Arial` });
 
         this.backButton
-            .setPosition(width / 2, height * 0.92)
-            .setStyle({ font: `${backSize}px Arial` });
+            .setPosition(width / 2, height * (isMobile ? 0.93 : 0.92))
+            .setStyle({
+                font: `bold ${Math.max(isMobile ? 17 : backSize, backSize)}px Arial`,
+                padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
+            });
     }
 }

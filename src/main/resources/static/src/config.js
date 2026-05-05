@@ -11,7 +11,14 @@ const config = {
     type: Phaser.AUTO,
     width: window.innerWidth,
     height: window.innerHeight,
+    resolution: Math.min(window.devicePixelRatio || 1, 2),
+    autoRound: true,
     backgroundColor: '#1a1a2e',
+    render: {
+        antialias: true,
+        pixelArt: false,
+        roundPixels: true
+    },
     scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH

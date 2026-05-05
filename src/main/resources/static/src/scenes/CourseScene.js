@@ -23,9 +23,11 @@ export default class CourseScene extends Phaser.Scene {
             fill: '#f2c94c'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        this.backText = this.add.text(0, 0, '[ RETOUR ]', {
-            font: '18px Arial',
-            fill: '#aaaaaa'
+        this.backText = this.add.text(0, 0, 'Retour', {
+            font: 'bold 18px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#1f4ed8',
+            padding: { x: 18, y: 10 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         this.mathButton.on('pointerover', () => this.mathButton.setStyle({ fill: '#ffffff' }));
@@ -36,8 +38,8 @@ export default class CourseScene extends Phaser.Scene {
         this.frenchButton.on('pointerout', () => this.frenchButton.setStyle({ fill: '#f2c94c' }));
         this.frenchButton.on('pointerdown', () => this.scene.start('FrenchCourseScene'));
 
-        this.backText.on('pointerover', () => this.backText.setStyle({ fill: '#ffffff' }));
-        this.backText.on('pointerout', () => this.backText.setStyle({ fill: '#aaaaaa' }));
+        this.backText.on('pointerover', () => this.backText.setStyle({ backgroundColor: '#2563eb' }));
+        this.backText.on('pointerout', () => this.backText.setStyle({ backgroundColor: '#1f4ed8' }));
         this.backText.on('pointerdown', () => this.scene.start('MenuScene'));
 
         this.input.keyboard.on('keydown-ESC', () => this.scene.start('MenuScene'));
@@ -61,6 +63,7 @@ export default class CourseScene extends Phaser.Scene {
     }
 
     _layout(width, height) {
+        const isMobile = width < 900 || height > width;
         const base = Math.min(width, height);
         const titleSize = Phaser.Math.Clamp(Math.round(base * 0.08), 26, 54);
         const btnSize = Phaser.Math.Clamp(Math.round(base * 0.05), 20, 40);
@@ -70,6 +73,11 @@ export default class CourseScene extends Phaser.Scene {
         this.titleText.setPosition(width / 2, height * 0.28).setStyle({ font: `bold ${titleSize}px Arial` });
         this.mathButton.setPosition(width / 2, height * 0.48).setStyle({ font: `${btnSize}px Arial` });
         this.frenchButton.setPosition(width / 2, height * 0.60).setStyle({ font: `${btnSize}px Arial` });
-        this.backText.setPosition(width / 2, height * 0.75).setStyle({ font: `${backSize}px Arial` });
+        this.backText
+            .setPosition(width / 2, height * (isMobile ? 0.8 : 0.75))
+            .setStyle({
+                font: `bold ${Math.max(isMobile ? 18 : backSize, backSize)}px Arial`,
+                padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
+            });
     }
 }

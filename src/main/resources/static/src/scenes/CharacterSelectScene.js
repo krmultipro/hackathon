@@ -48,13 +48,15 @@ export default class CharacterSelectScene extends Phaser.Scene {
         this.p1Frame = this.add.rectangle(0, 0, 10, 10, 0x2d9cdb).setAlpha(0).setDepth(-1);
         this.p2Frame = this.add.rectangle(0, 0, 10, 10, 0xeb5757).setAlpha(0).setDepth(-1);
 
-        this.backButton = this.add.text(0, 0, '[ RETOUR ]', {
-            font: '18px Arial',
-            fill: '#aaaaaa'
+        this.backButton = this.add.text(0, 0, 'Retour', {
+            font: 'bold 18px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#1f4ed8',
+            padding: { x: 18, y: 10 }
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
-        this.backButton.on('pointerover', () => this.backButton.setStyle({ fill: '#ffffff' }));
-        this.backButton.on('pointerout', () => this.backButton.setStyle({ fill: '#aaaaaa' }));
+        this.backButton.on('pointerover', () => this.backButton.setStyle({ backgroundColor: '#2563eb' }));
+        this.backButton.on('pointerout', () => this.backButton.setStyle({ backgroundColor: '#1f4ed8' }));
         this.backButton.on('pointerdown', () => this.scene.start(this.previousScene));
 
         this.input.keyboard.on('keydown-ESC', () => this.scene.start(this.previousScene));
@@ -128,7 +130,12 @@ export default class CharacterSelectScene extends Phaser.Scene {
 
         this.p1StatusText.setPosition(p1Area.cx, p1Area.bottom - 8).setStyle({ font: `${hintSize}px Arial` });
         this.p2StatusText.setPosition(p2Area.cx, p2Area.bottom - 8).setStyle({ font: `${hintSize}px Arial` });
-        this.backButton.setPosition(12, height - 20).setStyle({ font: `${hintSize}px Arial` });
+        this.backButton
+            .setPosition(12, height - (isMobile ? 30 : 20))
+            .setStyle({
+                font: `bold ${Math.max(isMobile ? 18 : hintSize, hintSize)}px Arial`,
+                padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
+            });
 
         const selP1src = this.p1choice === 'girl' ? srcP1Girl : srcP1Boy;
         const selP1scale = this.p1choice === 'girl' ? scaleP1Girl : scaleP1Boy;
