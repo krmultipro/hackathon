@@ -30,9 +30,7 @@ public class MatchQuestionController {
     @GetMapping("/{id}")
     @Operation(summary = "Récupérer une association match-question par identifiant")
     public ResponseEntity<MatchQuestion> getById(@PathVariable Long id) {
-        return matchQuestionService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(matchQuestionService.findById(id));
     }
 
     @PostMapping
@@ -44,16 +42,13 @@ public class MatchQuestionController {
     @PutMapping("/{id}")
     @Operation(summary = "Mettre à jour une association match-question")
     public ResponseEntity<MatchQuestion> update(@PathVariable Long id, @RequestBody MatchQuestion details) {
-        return matchQuestionService.update(id, details)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(matchQuestionService.update(id, details));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Supprimer une association match-question")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        return matchQuestionService.delete(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+        matchQuestionService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
