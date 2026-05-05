@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/match-questions")
-@Tag(name = "Match Questions", description = "Manage the links between matches and questions")
+@Tag(name = "Match Questions", description = "Gere les liens entre les matchs et les questions")
 public class MatchQuestionController {
 
     private final MatchQuestionService matchQuestionService;
@@ -22,38 +22,68 @@ public class MatchQuestionController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all match questions", description = "Return the full list of match-question links.")
-    public ResponseEntity<List<MatchQuestion>> getAll() {
-        return ResponseEntity.ok(matchQuestionService.findAll());
+    @Operation(
+            summary = "Recuperer toutes les associations match-question",
+            description = "Retourne la liste complete des associations entre les matchs et les questions."
+    )
+    public ResponseEntity<List<MatchQuestion>> getAllMatchQuestions() {
+        return ResponseEntity.ok(matchQuestionRepository.findAll());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Get a match question by id", description = "Return one match-question link using its id.")
-    public ResponseEntity<MatchQuestion> getById(@PathVariable Long id) {
-        return matchQuestionService.findById(id)
-                .map(ResponseEntity::ok)
+    @Operation(
+            summary = "Recuperer une association match-question par identifiant",
+            description = "Retourne une association entre un match et une question a partir de son identifiant."
+    )
+    public ResponseEntity<MatchQuestion> getMatchQuestionById(@PathVariable Long id) {
+        Optional<MatchQuestion> matchQuestion = matchQuestionRepository.findById(id);
+        return matchQuestion.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    @Operation(summary = "Create a match question", description = "Create a new link between a match and a question.")
-    public ResponseEntity<MatchQuestion> create(@RequestBody MatchQuestion matchQuestion) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(matchQuestionService.create(matchQuestion));
+    @Operation(
+            summary = "Creer une association match-question",
+            description = "Cree une nouvelle association entre un match et une question."
+    )
+    public ResponseEntity<MatchQuestion> createMatchQuestion(@RequestBody MatchQuestion matchQuestion) {
+        MatchQuestion savedMatchQuestion = matchQuestionRepository.save(matchQuestion);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedMatchQuestion);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Update a match question", description = "Update the match and question for an existing link.")
-    public ResponseEntity<MatchQuestion> update(@PathVariable Long id, @RequestBody MatchQuestion details) {
-        return matchQuestionService.update(id, details)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    @Operation(
+            summary = "Mettre a jour une association match-question",
+            description = "Met a jour l'identifiant du match et l'identifiant de la question pour une association existante."
+    )
+    public ResponseEntity<MatchQuestion> updateMatchQuestion(
+            @PathVariable Long id,
+            @RequestBody MatchQuestion matchQuestionDetails
+    ) {
+        Optional<MatchQuestion> existingMatchQuestion = matchQuestionRepository.findById(id);
+        if (existingMatchQuestion.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        MatchQuestion matchQuestion = existingMatchQuestion.get();
+        matchQuestion.setMatchId(matchQuestionDetails.getMatchId());
+        matchQuestion.setQuestionId(matchQuestionDetails.getQuestionId());
+
+        MatchQuestion updatedMatchQuestion = matchQuestionRepository.save(matchQuestion);
+        return ResponseEntity.ok(updatedMatchQuestion);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a match question", description = "Delete a match-question link by its id.")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        return matchQuestionService.delete(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+    @Operation(
+            summary = "Supprimer une association match-question",
+            description = "Supprime une association entre un match et une question a partir de son identifiant."
+    )
+    public ResponseEntity<Void> deleteMatchQuestion(@PathVariable Long id) {
+        if (!matchQuestionRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        matchQuestionRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
