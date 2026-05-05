@@ -1,17 +1,17 @@
 import { getGlobalLeaderboard } from "../modules/leaderboard/leaderboardService.js";
 
 const MENU_THEME = {
-  bgTop: 0x06111f,
-  bgBottom: 0x120a2e,
-  cyan: 0x49d6ff,
-  teal: 0x34f5c5,
-  yellow: 0xffd84a,
-  coral: 0xff7a59,
+  bgTop: 0x08101c,
+  bgBottom: 0x170b16,
+  cyan: 0x56ccf2,
+  teal: 0x56ccf2,
+  yellow: 0xf2c94c,
+  coral: 0xff7675,
   white: 0xf7fbff,
   slate: 0x9cb3c9,
-  panel: 0x0e1a2e,
-  panelDeep: 0x0a1322,
-  line: 0x3c5f8d,
+  panel: 0x101626,
+  panelDeep: 0x0d1322,
+  line: 0x334766,
 };
 
 export default class MenuScene extends Phaser.Scene {
@@ -43,7 +43,7 @@ export default class MenuScene extends Phaser.Scene {
     this.bgGlow = this.add.graphics();
     this.grid = this.add.graphics();
     this.orbLeft = this.add.circle(0, 0, 120, MENU_THEME.cyan, 0.16);
-    this.orbRight = this.add.circle(0, 0, 160, MENU_THEME.coral, 0.12);
+    this.orbRight = this.add.circle(0, 0, 160, MENU_THEME.coral, 0.14);
     this.orbBottom = this.add.circle(0, 0, 180, MENU_THEME.yellow, 0.08);
     this.heroPanel = this.add
       .rectangle(0, 0, 10, 10, MENU_THEME.panel, 0.76)
@@ -72,7 +72,7 @@ export default class MenuScene extends Phaser.Scene {
         "Releve des duels eclairs, monte en ELO et transforme tes cours en terrain de jeu.",
         {
           font: "26px Arial",
-          fill: "#dbe9f7",
+          fill: "#d6e6f5",
           align: "center",
           wordWrap: { width: 760 },
         },
@@ -82,7 +82,7 @@ export default class MenuScene extends Phaser.Scene {
     this.heroHint = this.add
       .text(0, 0, "Choisis ton defi du jour", {
         font: "bold 20px Arial",
-        fill: "#49d6ff",
+        fill: "#f2c94c",
       })
       .setOrigin(0.5);
   }
@@ -90,8 +90,8 @@ export default class MenuScene extends Phaser.Scene {
   _createStatChips() {
     this.statChips = [
       this._createChip("Quiz rapides", MENU_THEME.cyan),
+      this._createChip("Duel arena", MENU_THEME.coral),
       this._createChip("Progression ELO", MENU_THEME.yellow),
-      this._createChip("Ambiance arena", MENU_THEME.teal),
     ];
   }
 
@@ -112,21 +112,21 @@ export default class MenuScene extends Phaser.Scene {
 
   _createMenuCards() {
     this.courseCard = this._createActionCard({
-      accent: MENU_THEME.teal,
+      accent: MENU_THEME.cyan,
       eyebrow: "APPRENDRE",
       title: "Cours",
       description:
         "Des parcours clairs pour reviser vite et gagner en confiance.",
     });
     this.tournamentCard = this._createActionCard({
-      accent: MENU_THEME.yellow,
+      accent: MENU_THEME.coral,
       eyebrow: "AFFRONTER",
       title: "Tournoi",
       description:
         "Des duels intenses pour tester tes reflexes et grimper au classement.",
     });
     this.leaderboardCard = this._createActionCard({
-      accent: MENU_THEME.cyan,
+      accent: MENU_THEME.yellow,
       eyebrow: "BRILLER",
       title: "Classement",
       description: "Vois les meilleurs et vise la premiere place.",
@@ -202,7 +202,7 @@ export default class MenuScene extends Phaser.Scene {
       .text(0, 0, "Deconnexion", {
         font: "bold 18px Arial",
         fill: "#ffd7d1",
-        backgroundColor: "#30101c",
+        backgroundColor: "#4a1820",
         padding: { x: 12, y: 8 },
       })
       .setOrigin(1, 0)
@@ -225,11 +225,11 @@ export default class MenuScene extends Phaser.Scene {
       .setInteractive();
     this.leaderboardPanel = this.add
       .rectangle(0, 0, 10, 10, MENU_THEME.panelDeep, 0.97)
-      .setStrokeStyle(2, MENU_THEME.cyan, 0.9)
+      .setStrokeStyle(2, MENU_THEME.yellow, 0.9)
       .setDepth(41)
       .setVisible(false);
     this.leaderboardGlow = this.add
-      .rectangle(0, 0, 10, 10, MENU_THEME.cyan, 0.08)
+      .rectangle(0, 0, 10, 10, MENU_THEME.yellow, 0.08)
       .setDepth(41)
       .setVisible(false);
     this.leaderboardTitle = this.add
@@ -243,7 +243,7 @@ export default class MenuScene extends Phaser.Scene {
     this.leaderboardSubtitle = this.add
       .text(0, 0, "Top joueurs", {
         font: "bold 18px Arial",
-        fill: "#49d6ff",
+        fill: "#f2c94c",
       })
       .setOrigin(0.5)
       .setDepth(42)
@@ -510,13 +510,13 @@ export default class MenuScene extends Phaser.Scene {
     this.bgGradient.fillRect(0, 0, width, height);
 
     this.bgGlow.clear();
-    this.bgGlow.fillStyle(MENU_THEME.cyan, 0.08);
+    this.bgGlow.fillStyle(MENU_THEME.cyan, 0.09);
     this.bgGlow.fillCircle(
       width * 0.18,
       height * 0.2,
       Math.min(width, height) * 0.2,
     );
-    this.bgGlow.fillStyle(MENU_THEME.coral, 0.07);
+    this.bgGlow.fillStyle(MENU_THEME.coral, 0.09);
     this.bgGlow.fillCircle(
       width * 0.84,
       height * 0.18,
