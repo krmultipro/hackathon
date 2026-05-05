@@ -1,17 +1,11 @@
 import config from './config.js';
-import { login, register } from './modules/auth/authService.js';
-
-let gameInstance = null;
+import { clearStoredUser, getStoredUser, login, register } from './modules/auth/authService.js';
 
 export function startGame() {
-    if (gameInstance) {
-        return gameInstance;
+    if (!window.game) {
+        window.game = new Phaser.Game(config);
     }
-
-    document.body.classList.remove('auth-active');
-    document.body.classList.add('game-active');
-    gameInstance = new Phaser.Game(config);
-    return gameInstance;
+    return window.game;
 }
 
 function setMessage(message, type = 'error') {
@@ -50,10 +44,36 @@ function getCredentials() {
 function showGame() {
     const authScreen = document.getElementById('auth-screen');
     if (authScreen) {
-        authScreen.hidden = true;
+        authScreen.style.display = 'none';
     }
 
+    document.body.classList.remove('auth-active');
+    document.body.classList.add('game-started');
     startGame();
+}
+
+export function logout() {
+    const authScreen = document.getElementById('auth-screen');
+    const passwordInput = document.getElementById('password');
+
+    clearStoredUser();
+
+    if (window.game) {
+        window.game.destroy(true);
+        window.game = null;
+    }
+
+    if (authScreen) {
+        authScreen.style.display = 'flex';
+    }
+
+    if (passwordInput) {
+        passwordInput.value = '';
+    }
+
+    setMessage('', 'error');
+    document.body.classList.remove('game-started');
+    document.body.classList.add('auth-active');
 }
 
 async function handleLogin() {
@@ -70,7 +90,7 @@ async function handleLogin() {
         await login(username, password);
         showGame();
     } catch (error) {
-        setMessage('Identifiants invalides');
+        setMessage(error.message || 'Identifiants invalides');
     } finally {
         setLoading(false);
     }
@@ -90,7 +110,7 @@ async function handleRegister() {
         await register(username, password);
         showGame();
     } catch (error) {
-        setMessage('Inscription impossible');
+        setMessage(error.message || 'Inscription impossible');
     } finally {
         setLoading(false);
     }
@@ -119,6 +139,11 @@ function bindAuthUi() {
 }
 
 window.addEventListener('load', () => {
+    window.logout = logout;
     document.body.classList.add('auth-active');
     bindAuthUi();
+
+    if (getStoredUser()) {
+        showGame();
+    }
 });

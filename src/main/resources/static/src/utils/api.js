@@ -1,34 +1,48 @@
-const DEFAULT_HEADERS = {
-    'Content-Type': 'application/json'
+const JSON_HEADERS = {
+    "Content-Type": "application/json"
 };
 
-async function request(method, url, body, options = {}) {
-    const response = await fetch(url, {
-        method,
-        headers: {
-            ...DEFAULT_HEADERS,
-            ...(options.headers || {})
-        },
-        body: body !== undefined ? JSON.stringify(body) : undefined
-    });
+async function parseJsonResponse(response) {
+    const rawText = await response.text();
+
+    if (!rawText) {
+        return {};
+    }
+
+    try {
+        return JSON.parse(rawText);
+    } catch {
+        return { message: rawText };
+    }
+}
+
+async function request(url, options = {}) {
+    const response = await fetch(url, options);
+    const data = await parseJsonResponse(response);
 
     if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const message = data.message || `HTTP ${response.status}`;
+        throw new Error(message);
     }
 
-    const contentType = response.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-        return response.json();
-    }
-
-    return response.text();
+    return data;
 }
 
-export function apiGet(url, options) {
-    return request('GET', url, undefined, options);
+export function apiGet(url, options = {}) {
+    return request(url, {
+        method: "GET",
+        ...options
+    });
 }
 
-export function apiPost(url, body, options) {
-    return request('POST', url, body, options);
+export function apiPost(url, body, options = {}) {
+    return request(url, {
+        method: "POST",
+        headers: {
+            ...JSON_HEADERS,
+            ...(options.headers || {})
+        },
+        body: JSON.stringify(body),
+        ...options
+    });
 }
-

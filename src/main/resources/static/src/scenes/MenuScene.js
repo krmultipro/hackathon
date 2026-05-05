@@ -23,6 +23,13 @@ export default class MenuScene extends Phaser.Scene {
             fill: '#f2c94c'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
+        this.logoutButton = this.add.text(0, 0, 'Deconnexion', {
+            font: '20px Arial',
+            fill: '#ff8a8a',
+            backgroundColor: '#2a1020',
+            padding: { x: 12, y: 8 }
+        }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+
         this.courseButton.on('pointerover', () => this.courseButton.setStyle({ fill: '#ffffff' }));
         this.courseButton.on('pointerout', () => this.courseButton.setStyle({ fill: '#00ff88' }));
         this.courseButton.on('pointerdown', () => this.scene.start('CourseScene'));
@@ -30,6 +37,14 @@ export default class MenuScene extends Phaser.Scene {
         this.tournamentButton.on('pointerover', () => this.tournamentButton.setStyle({ fill: '#ffffff' }));
         this.tournamentButton.on('pointerout', () => this.tournamentButton.setStyle({ fill: '#f2c94c' }));
         this.tournamentButton.on('pointerdown', () => this.scene.start('CharacterSelectScene', { previousScene: 'MenuScene' }));
+
+        this.logoutButton.on('pointerover', () => this.logoutButton.setStyle({ fill: '#ffffff' }));
+        this.logoutButton.on('pointerout', () => this.logoutButton.setStyle({ fill: '#ff8a8a' }));
+        this.logoutButton.on('pointerdown', () => {
+            if (typeof window.logout === 'function') {
+                window.logout();
+            }
+        });
 
         this._layout(width, height);
 
@@ -64,5 +79,8 @@ export default class MenuScene extends Phaser.Scene {
         this.tournamentButton
             .setPosition(width / 2, height * 0.62)
             .setStyle({ font: `${btnSize}px Arial` });
+        this.logoutButton
+            .setPosition(width - 24, 24)
+            .setStyle({ font: `${Math.max(16, Math.round(btnSize * 0.5))}px Arial` });
     }
 }
