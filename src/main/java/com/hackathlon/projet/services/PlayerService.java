@@ -4,17 +4,32 @@ import com.hackathlon.projet.exception.BadRequestException;
 import com.hackathlon.projet.exception.NotFoundException;
 import com.hackathlon.projet.model.Player;
 import com.hackathlon.projet.repository.PlayerRepository;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class PlayerService {
+public class PlayerService implements UserDetailsService {
 
     private final PlayerRepository playerRepository;
 
     public PlayerService(PlayerRepository playerRepository) {
         this.playerRepository = playerRepository;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return playerRepository.findByUsername(username)
+                .map(player -> User.builder()
+                        .username(player.getUsername())
+                        .password(player.getPassword())
+                        .roles("USER")
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException("Joueur introuvable : " + username));
     }
 
     public List<Player> findAll() {

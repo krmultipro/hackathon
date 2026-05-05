@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/match-questions")
+@RequestMapping("/api/match-questions")
 @Tag(name = "Match Questions", description = "Gère les liens entre les matchs et les questions")
 public class MatchQuestionController {
 
