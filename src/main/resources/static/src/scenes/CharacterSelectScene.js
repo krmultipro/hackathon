@@ -129,7 +129,7 @@ export default class CharacterSelectScene extends Phaser.Scene {
         this.p2GirlImg.setPosition(this._girlP2x, p2CharY).setScale(scaleP2Girl);
 
         this.p1StatusText.setPosition(p1Area.cx, p1Area.bottom - 8).setStyle({ font: `${hintSize}px Arial` });
-        this.p2StatusText.setPosition(p2Area.cx, p2Area.bottom - 8).setStyle({ font: `${hintSize}px Arial` });
+        this.p2StatusText.setPosition(p2Area.cx, p2Area.bottom - 24).setStyle({ font: `${hintSize}px Arial` });
         this.backButton
             .setPosition(12, height - (isMobile ? 30 : 20))
             .setStyle({

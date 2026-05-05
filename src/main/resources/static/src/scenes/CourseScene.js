@@ -1,83 +1,386 @@
+const COURSE_THEME = {
+  bgTop: 0x07111f,
+  bgBottom: 0x1a1031,
+  cyan: 0x49d6ff,
+  yellow: 0xffd84a,
+  teal: 0x34f5c5,
+  panel: 0x0d182b,
+  panelSoft: 0x102138,
+  text: 0xf7fbff,
+  muted: 0xc6d7ea,
+  line: 0x35557c,
+};
+
 export default class CourseScene extends Phaser.Scene {
-    constructor() {
-        super({ key: 'CourseScene' });
+  constructor() {
+    super({ key: "CourseScene" });
+  }
+
+  create() {
+    const { width, height } = this.scale;
+
+    this.bgGradient = this.add.graphics();
+    this.bgGlow = this.add.graphics();
+    this.grid = this.add.graphics();
+
+    this.heroShadow = this.add.rectangle(0, 0, 10, 10, 0x000000, 0.18);
+    this.heroPanel = this.add
+      .rectangle(0, 0, 10, 10, COURSE_THEME.panel, 0.88)
+      .setStrokeStyle(2, COURSE_THEME.line, 0.6);
+
+    this.titleText = this.add
+      .text(0, 0, "Choisis ta matiere", {
+        font: "900 52px Arial",
+        fill: "#f7fbff",
+        stroke: "#10203a",
+        strokeThickness: 5,
+        padding: { x: 40, y: 30 },
+      })
+      .setOrigin(0.5);
+
+    this.subtitleText = this.add
+      .text(
+        0,
+        0,
+        "Deux parcours pour reviser vite, progresser et entrer dans l arene.",
+        {
+          font: "22px Arial",
+          fill: "#c6d7ea",
+          align: "center",
+          wordWrap: { width: 680 },
+        },
+      )
+      .setOrigin(0.5);
+
+    this.mathCard = this._createSubjectCard({
+      accent: COURSE_THEME.cyan,
+      eyebrow: "LOGIQUE",
+      title: "Mathematiques",
+      description: "Calcul, reflexes et astuces pour aller au duel avec confiance.",
+      cta: "Commencer",
+    });
+
+    this.frenchCard = this._createSubjectCard({
+      accent: COURSE_THEME.yellow,
+      eyebrow: "LANGUE",
+      title: "Francais",
+      description: "Orthographe, grammaire et expression pour marquer des points.",
+      cta: "Commencer",
+    });
+
+    this.backButton = this.add
+      .text(0, 0, "Retour", {
+        font: "bold 18px Arial",
+        fill: "#ffffff",
+        backgroundColor: "#1f4ed8",
+        padding: { x: 18, y: 10 },
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true });
+
+    this._wireCard(this.mathCard, () => this.scene.start("MathCourseScene"));
+    this._wireCard(this.frenchCard, () => this.scene.start("FrenchCourseScene"));
+
+    this.backButton.on("pointerover", () =>
+      this.backButton.setStyle({ backgroundColor: "#2563eb" }),
+    );
+    this.backButton.on("pointerout", () =>
+      this.backButton.setStyle({ backgroundColor: "#1f4ed8" }),
+    );
+    this.backButton.on("pointerdown", () => this.scene.start("MenuScene"));
+
+    this.input.keyboard.on("keydown-ESC", () => this.scene.start("MenuScene"));
+
+    this._layout(width, height);
+
+    this.scale.on("resize", this._onResize, this);
+    this.events.once("shutdown", () => {
+      this.scale.off("resize", this._onResize, this);
+    });
+  }
+
+  _createSubjectCard({ accent, eyebrow, title, description, cta }) {
+    const container = this.add.container(0, 0);
+    const shadow = this.add.rectangle(0, 10, 10, 10, 0x000000, 0.22);
+    const panel = this.add
+      .rectangle(0, 0, 10, 10, COURSE_THEME.panelSoft, 0.94)
+      .setStrokeStyle(2, accent, 0.95);
+    const glow = this.add.rectangle(0, 0, 10, 10, accent, 0.08);
+    const accentBar = this.add.rectangle(0, 0, 10, 10, accent, 1);
+    const orb = this.add.circle(0, 0, 32, accent, 0.18);
+    const eyebrowText = this.add.text(0, 0, eyebrow, {
+      font: "900 14px Arial",
+      fill: "#9cb3c9",
+      letterSpacing: 2,
+    });
+    const titleText = this.add.text(0, 0, title, {
+      font: "900 32px Arial",
+      fill: "#f7fbff",
+    });
+    const descriptionText = this.add.text(0, 0, description, {
+      font: "18px Arial",
+      fill: "#dbe9f7",
+      wordWrap: { width: 280 },
+    });
+    const ctaText = this.add.text(0, 0, cta, {
+      font: "bold 18px Arial",
+      fill: "#091321",
+      backgroundColor: Phaser.Display.Color.IntegerToColor(accent).rgba,
+      padding: { x: 14, y: 8 },
+    });
+
+    container.add([
+      shadow,
+      panel,
+      glow,
+      accentBar,
+      orb,
+      eyebrowText,
+      titleText,
+      descriptionText,
+      ctaText,
+    ]);
+
+    container.cardParts = {
+      accent,
+      shadow,
+      panel,
+      glow,
+      accentBar,
+      orb,
+      eyebrowText,
+      titleText,
+      descriptionText,
+      ctaText,
+    };
+
+    container.setInteractive(
+      new Phaser.Geom.Rectangle(-5, -5, 10, 10),
+      Phaser.Geom.Rectangle.Contains,
+    );
+
+    return container;
+  }
+
+  _wireCard(card, onClick) {
+    card.on("pointerover", () => this._setCardState(card, true));
+    card.on("pointerout", () => this._setCardState(card, false));
+    card.on("pointerdown", () => {
+      const isMobile =
+        this.scale.width < 900 || this.scale.height > this.scale.width;
+      if (isMobile) {
+        onClick();
+        return;
+      }
+
+      this.tweens.add({
+        targets: card,
+        scaleX: 0.98,
+        scaleY: 0.98,
+        yoyo: true,
+        duration: 90,
+        onComplete: onClick,
+      });
+    });
+  }
+
+  _setCardState(card, isHovered) {
+    const isMobile =
+      this.scale.width < 900 || this.scale.height > this.scale.width;
+    if (isMobile) {
+      return;
     }
 
-    create() {
-        const { width, height } = this.scale;
+    const { glow, shadow, panel, ctaText, accent } = card.cardParts;
+    this.tweens.add({
+      targets: card,
+      y: isHovered ? card.baseY - 8 : card.baseY,
+      scaleX: isHovered ? 1.02 : 1,
+      scaleY: isHovered ? 1.02 : 1,
+      duration: 180,
+      ease: "Sine.Out",
+    });
+    this.tweens.add({
+      targets: shadow,
+      alpha: isHovered ? 0.3 : 0.22,
+      y: isHovered ? 16 : 10,
+      duration: 180,
+    });
+    glow.setAlpha(isHovered ? 0.14 : 0.08);
+    panel.setStrokeStyle(2, accent, isHovered ? 1 : 0.95);
+    ctaText.setStyle({ fill: isHovered ? "#ffffff" : "#091321" });
+  }
 
-        this.bg = this.add.rectangle(0, 0, 1, 1, 0x101626).setOrigin(0);
+  _onResize() {
+    if (this._resizeTimer) {
+      this._resizeTimer.remove();
+    }
 
-        this.titleText = this.add.text(0, 0, 'Choisir une matiere', {
-            font: 'bold 42px Arial',
-            fill: '#ffffff'
-        }).setOrigin(0.5);
+    this._resizeTimer = this.time.delayedCall(150, () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      this.scale.resize(width, height);
+      this._layout(width, height);
+    });
+  }
 
-        this.mathButton = this.add.text(0, 0, '[ MATHEMATIQUES ]', {
-            font: '30px Arial',
-            fill: '#56ccf2'
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  _snap(value) {
+    return Math.round(value);
+  }
 
-        this.frenchButton = this.add.text(0, 0, '[ FRANCAIS ]', {
-            font: '30px Arial',
-            fill: '#f2c94c'
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+  _drawBackground(width, height) {
+    this.bgGradient.clear();
+    this.bgGradient.fillGradientStyle(
+      COURSE_THEME.bgTop,
+      COURSE_THEME.bgTop,
+      COURSE_THEME.bgBottom,
+      COURSE_THEME.bgBottom,
+      1,
+    );
+    this.bgGradient.fillRect(0, 0, width, height);
 
-        this.backText = this.add.text(0, 0, 'Retour', {
-            font: 'bold 18px Arial',
-            fill: '#ffffff',
-            backgroundColor: '#1f4ed8',
-            padding: { x: 18, y: 10 }
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    this.bgGlow.clear();
+    this.bgGlow.fillStyle(COURSE_THEME.cyan, 0.08);
+    this.bgGlow.fillCircle(width * 0.18, height * 0.22, Math.min(width, height) * 0.2);
+    this.bgGlow.fillStyle(COURSE_THEME.yellow, 0.06);
+    this.bgGlow.fillCircle(width * 0.82, height * 0.2, Math.min(width, height) * 0.18);
 
-        this.mathButton.on('pointerover', () => this.mathButton.setStyle({ fill: '#ffffff' }));
-        this.mathButton.on('pointerout', () => this.mathButton.setStyle({ fill: '#56ccf2' }));
-        this.mathButton.on('pointerdown', () => this.scene.start('MathCourseScene'));
+    this.grid.clear();
+    this.grid.lineStyle(1, COURSE_THEME.line, 0.12);
+    const step = Math.max(32, Math.round(Math.min(width, height) * 0.06));
+    for (let x = 0; x <= width; x += step) {
+      this.grid.lineBetween(x, 0, x, height);
+    }
+    for (let y = 0; y <= height; y += step) {
+      this.grid.lineBetween(0, y, width, y);
+    }
+  }
 
-        this.frenchButton.on('pointerover', () => this.frenchButton.setStyle({ fill: '#ffffff' }));
-        this.frenchButton.on('pointerout', () => this.frenchButton.setStyle({ fill: '#f2c94c' }));
-        this.frenchButton.on('pointerdown', () => this.scene.start('FrenchCourseScene'));
+  _layout(width, height) {
+    const isMobile = width < 900 || height > width;
+    const base = Math.min(width, height);
+    const heroWidth = Math.min(width * (isMobile ? 0.9 : 0.82), 980);
+    const heroHeight = Math.min(height * (isMobile ? 0.18 : 0.24), isMobile ? 140 : 220);
+    const cardWidth = Math.min(isMobile ? width * 0.9 : width * 0.34, 420);
+    const cardHeight = isMobile ? 154 : 210;
+    const titleSize = Phaser.Math.Clamp(
+      Math.round(base * (isMobile ? 0.11 : 0.085)),
+      32,
+      70,
+    );
+    const subtitleSize = Phaser.Math.Clamp(
+      Math.round(base * (isMobile ? 0.03 : 0.028)),
+      14,
+      24,
+    );
+    const cardTitleSize = Phaser.Math.Clamp(
+      Math.round(base * (isMobile ? 0.05 : 0.042)),
+      24,
+      34,
+    );
+    const cardTextSize = Phaser.Math.Clamp(
+      Math.round(base * (isMobile ? 0.026 : 0.024)),
+      14,
+      20,
+    );
 
-        this.backText.on('pointerover', () => this.backText.setStyle({ backgroundColor: '#2563eb' }));
-        this.backText.on('pointerout', () => this.backText.setStyle({ backgroundColor: '#1f4ed8' }));
-        this.backText.on('pointerdown', () => this.scene.start('MenuScene'));
+    this._drawBackground(width, height);
 
-        this.input.keyboard.on('keydown-ESC', () => this.scene.start('MenuScene'));
+    this.heroShadow
+      .setPosition(this._snap(width / 2 + 8), this._snap(height * (isMobile ? 0.18 : 0.22) + 10))
+      .setSize(heroWidth, heroHeight);
+    this.heroPanel
+      .setPosition(this._snap(width / 2), this._snap(height * (isMobile ? 0.18 : 0.22)))
+      .setSize(heroWidth, heroHeight);
 
-        this._layout(width, height);
+    this.titleText
+      .setPosition(this._snap(width / 2), this._snap(height * (isMobile ? 0.15 : 0.2)))
+      .setStyle({ font: `900 ${titleSize}px Arial` });
+    this.subtitleText
+      .setPosition(this._snap(width / 2), this._snap(height * (isMobile ? 0.21 : 0.27)))
+      .setStyle({
+        font: `${subtitleSize}px Arial`,
+        wordWrap: { width: Math.min(heroWidth - 40, 700) },
+      });
 
-        this.scale.on('resize', this._onResize, this);
-        this.events.once('shutdown', () => {
-            this.scale.off('resize', this._onResize, this);
+    const cardY = isMobile ? height * 0.54 : height * 0.58;
+    const positions = isMobile
+      ? [
+          { x: width / 2, y: cardY - 96 },
+          { x: width / 2, y: cardY + 96 },
+        ]
+      : [
+          { x: width / 2 - (cardWidth / 2) - 18, y: cardY },
+          { x: width / 2 + (cardWidth / 2) + 18, y: cardY },
+        ];
+
+    [this.mathCard, this.frenchCard].forEach((card, index) => {
+      const {
+        shadow,
+        panel,
+        glow,
+        accentBar,
+        orb,
+        eyebrowText,
+        titleText,
+        descriptionText,
+        ctaText,
+      } = card.cardParts;
+
+      const { x, y } = positions[index];
+      card.setPosition(this._snap(x), this._snap(y));
+      card.baseY = this._snap(y);
+      card.input.hitArea.setTo(-(cardWidth / 2), -(cardHeight / 2), cardWidth, cardHeight);
+      card.input.hitAreaCallback = Phaser.Geom.Rectangle.Contains;
+
+      shadow.setSize(cardWidth, cardHeight);
+      panel.setSize(cardWidth, cardHeight);
+      glow.setSize(cardWidth - 8, cardHeight - 8);
+      accentBar
+        .setSize(isMobile ? 8 : 10, cardHeight - 28)
+        .setPosition(this._snap(-(cardWidth / 2) + 18), 0);
+      orb.setPosition(
+        this._snap(cardWidth / 2 - (isMobile ? 34 : 46)),
+        this._snap(-(cardHeight / 2) + (isMobile ? 34 : 44)),
+      );
+      eyebrowText
+        .setPosition(
+          this._snap(-(cardWidth / 2) + 30),
+          this._snap(-(cardHeight / 2) + 18),
+        )
+        .setStyle({
+          font: `900 ${Math.max(12, Math.round(cardTextSize * 0.75))}px Arial`,
         });
-    }
-
-    _onResize() {
-        if (this._resizeTimer) { this._resizeTimer.remove(); }
-        this._resizeTimer = this.time.delayedCall(150, () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            this.scale.resize(width, height);
-            this._layout(width, height);
+      titleText
+        .setPosition(
+          this._snap(-(cardWidth / 2) + 30),
+          this._snap(-(cardHeight / 2) + 42),
+        )
+        .setStyle({ font: `900 ${cardTitleSize}px Arial` });
+      descriptionText
+        .setPosition(
+          this._snap(-(cardWidth / 2) + 30),
+          this._snap(-(cardHeight / 2) + 74),
+        )
+        .setStyle({
+          font: `${cardTextSize}px Arial`,
+          wordWrap: { width: cardWidth - 96 },
         });
-    }
+      ctaText
+        .setPosition(
+          this._snap(-(cardWidth / 2) + 30),
+          this._snap(cardHeight / 2 - 26),
+        )
+        .setStyle({
+          font: `bold ${Math.max(15, Math.round(cardTextSize))}px Arial`,
+        });
+    });
 
-    _layout(width, height) {
-        const isMobile = width < 900 || height > width;
-        const base = Math.min(width, height);
-        const titleSize = Phaser.Math.Clamp(Math.round(base * 0.08), 26, 54);
-        const btnSize = Phaser.Math.Clamp(Math.round(base * 0.05), 20, 40);
-        const backSize = Phaser.Math.Clamp(Math.round(base * 0.03), 14, 24);
-
-        this.bg.setSize(width, height);
-        this.titleText.setPosition(width / 2, height * 0.28).setStyle({ font: `bold ${titleSize}px Arial` });
-        this.mathButton.setPosition(width / 2, height * 0.48).setStyle({ font: `${btnSize}px Arial` });
-        this.frenchButton.setPosition(width / 2, height * 0.60).setStyle({ font: `${btnSize}px Arial` });
-        this.backText
-            .setPosition(width / 2, height * (isMobile ? 0.8 : 0.75))
-            .setStyle({
-                font: `bold ${Math.max(isMobile ? 18 : backSize, backSize)}px Arial`,
-                padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
-            });
-    }
+    this.backButton
+      .setPosition(this._snap(width / 2), this._snap(height * (isMobile ? 0.9 : 0.84)))
+      .setStyle({
+        font: `bold ${Math.max(isMobile ? 18 : 16, Math.round(base * 0.03))}px Arial`,
+        padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 },
+      });
+  }
 }
