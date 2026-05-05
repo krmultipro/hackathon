@@ -2,8 +2,6 @@ package com.hackathlon.projet.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.beans.factory.config.YamlProcessor.MatchStatus;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
