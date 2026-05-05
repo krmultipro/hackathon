@@ -1,6 +1,8 @@
 package com.hackathlon.projet.controller;
 
 import com.hackathlon.projet.dto.ErrorResponse;
+import com.hackathlon.projet.exception.BadRequestException;
+import com.hackathlon.projet.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -24,6 +26,16 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {

@@ -32,9 +32,9 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
 
     public AuthController(AuthenticationManager authenticationManager,
-                          PlayerService playerService,
-                          JwtUtil jwtUtil,
-                          PasswordEncoder passwordEncoder) {
+            PlayerService playerService,
+            JwtUtil jwtUtil,
+            PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.playerService = playerService;
         this.jwtUtil = jwtUtil;
@@ -50,8 +50,8 @@ public class AuthController {
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         if (playerService.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body(
-                    new ErrorResponse(400, "Nom d'utilisateur déjà pris : " + request.getUsername(), LocalDateTime.now())
-            );
+                    new ErrorResponse(400, "Nom d'utilisateur déjà pris : " + request.getUsername(),
+                            LocalDateTime.now()));
         }
 
         Player player = new Player();
@@ -73,8 +73,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
         String token = jwtUtil.generateToken(request.getUsername());
         return ResponseEntity.ok(new AuthResponse(token, request.getUsername()));
     }

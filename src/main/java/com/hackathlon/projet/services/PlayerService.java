@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PlayerService implements UserDetailsService {
@@ -55,7 +56,8 @@ public class PlayerService implements UserDetailsService {
     public Player loginPlayer(Player player) {
         validateLogin(player);
 
-        Player existingPlayer = playerRepository.findByUsername(player.getUsername());
+        Player existingPlayer = playerRepository.findByUsername(player.getUsername())
+                .orElse(null);
         if (existingPlayer == null) {
             throw new BadRequestException("Identifiants invalides");
         }
@@ -71,12 +73,8 @@ public class PlayerService implements UserDetailsService {
         return getPlayerById(id);
     }
 
-    public Player findByUsername(String username) {
-        Player player = playerRepository.findByUsername(username);
-        if (player == null) {
-            throw new NotFoundException("Joueur introuvable");
-        }
-        return player;
+    public Optional<Player> findByUsername(String username) {
+        return playerRepository.findByUsername(username);
     }
 
     public Player create(Player player) {

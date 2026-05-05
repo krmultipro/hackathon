@@ -1,5 +1,6 @@
 package com.hackathlon.projet.controller;
 
+import com.hackathlon.projet.exception.NotFoundException;
 import com.hackathlon.projet.model.Player;
 import com.hackathlon.projet.services.PlayerService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,7 +53,9 @@ public class PlayerController {
         @GetMapping("/by-username/{username}")
         public ResponseEntity<Player> getByUsername(
                         @Parameter(description = "Nom d'utilisateur", example = "alice123") @PathVariable String username) {
-                return ResponseEntity.ok(playerService.findByUsername(username));
+                Player player = playerService.findByUsername(username)
+                                .orElseThrow(() -> new NotFoundException("Joueur introuvable : " + username));
+                return ResponseEntity.ok(player);
         }
 
         @Operation(summary = "Créer un joueur", description = "Crée un nouveau joueur")

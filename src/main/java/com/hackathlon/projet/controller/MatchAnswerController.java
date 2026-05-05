@@ -41,9 +41,7 @@ public class MatchAnswerController {
         @GetMapping("/{id}")
         public ResponseEntity<MatchAnswer> getById(
                         @Parameter(description = "Identifiant de la réponse", example = "1") @PathVariable Long id) {
-                return matchAnswerService.findById(id)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(matchAnswerService.findById(id));
         }
 
         @Operation(summary = "Créer une réponse", description = "Enregistre la réponse d'un joueur à une question dans un match")
@@ -68,9 +66,7 @@ public class MatchAnswerController {
         public ResponseEntity<MatchAnswer> update(
                         @Parameter(description = "Identifiant de la réponse", example = "1") @PathVariable Long id,
                         @RequestBody MatchAnswer details) {
-                return matchAnswerService.update(id, details)
-                                .map(ResponseEntity::ok)
-                                .orElseGet(() -> ResponseEntity.notFound().build());
+                return ResponseEntity.ok(matchAnswerService.update(id, details));
         }
 
         @Operation(summary = "Supprimer une réponse", description = "Supprime une réponse enregistrée à partir de son identifiant")
@@ -81,8 +77,7 @@ public class MatchAnswerController {
         @DeleteMapping("/{id}")
         public ResponseEntity<Void> delete(
                         @Parameter(description = "Identifiant de la réponse", example = "1") @PathVariable Long id) {
-                return matchAnswerService.delete(id)
-                                ? ResponseEntity.noContent().build()
-                                : ResponseEntity.notFound().build();
+                matchAnswerService.delete(id);
+                return ResponseEntity.noContent().build();
         }
 }
