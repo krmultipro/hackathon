@@ -23,6 +23,9 @@ public class DemoDataSeeder implements CommandLineRunner {
     @Value("${app.seed.demo-players:false}")
     private boolean seedDemoPlayers;
 
+    @Value("${app.seed.password}")
+    private String seedPassword;
+
     public DemoDataSeeder(PlayerRepository playerRepository, PasswordEncoder passwordEncoder) {
         this.playerRepository = playerRepository;
         this.passwordEncoder = passwordEncoder;
@@ -57,7 +60,7 @@ public class DemoDataSeeder implements CommandLineRunner {
 
             Player player = new Player();
             player.setUsername(demoPlayer.username());
-            player.setPassword(passwordEncoder.encode("password123"));
+            player.setPassword(passwordEncoder.encode(seedPassword));
             player.setGlobalElo(demoPlayer.globalElo());
             player.setCreatedAt(LocalDateTime.now());
             playerRepository.save(player);

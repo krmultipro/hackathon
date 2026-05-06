@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "app.seed.demo-players",
+      "type": "java.lang.Boolean",
+      "description": "Active la création des joueurs de démo au démarrage."
+    },
+    {
+      "name": "app.seed.password",
+      "type": "java.lang.String",
+      "description": "Mot de passe utilisé pour les joueurs de démo (variable SEED_PASSWORD)."
+    }
+  ]
+}
