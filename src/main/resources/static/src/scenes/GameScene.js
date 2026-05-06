@@ -73,6 +73,18 @@ export default class GameScene extends Phaser.Scene {
             align: 'center',
             wordWrap: { width: 400 }
         }).setOrigin(0.5, 0);
+        this.winTextTop = this.add.text(0, 0, '', {
+            font: '24px Arial',
+            fill: '#56ccf2',
+            align: 'center',
+            wordWrap: { width: 400 }
+        }).setOrigin(0.5);
+        this.winTextBottom = this.add.text(0, 0, '', {
+            font: '24px Arial',
+            fill: '#56ccf2',
+            align: 'center',
+            wordWrap: { width: 400 }
+        }).setOrigin(0.5);
 
         this.choiceTexts = [];
         for (let i = 0; i < 4; i += 1) {
@@ -246,6 +258,18 @@ export default class GameScene extends Phaser.Scene {
             .setStyle({ font: fs(26, 15, 32) })
             .setAngle(0)
             .setWordWrapWidth(blockWidth);
+        this.winTextTop
+            .setVisible(isMobile)
+            .setPosition(width / 2, this._timerBarY - 34)
+            .setStyle({ font: fs(22, 14, 28) })
+            .setAngle(180)
+            .setWordWrapWidth(blockWidth);
+        this.winTextBottom
+            .setVisible(isMobile)
+            .setPosition(width / 2, this._timerBarY + 34)
+            .setStyle({ font: fs(22, 14, 28) })
+            .setAngle(0)
+            .setWordWrapWidth(blockWidth);
 
         const gap = isMobile ? 32 : 42;
         for (let i = 0; i < 4; i += 1) {
@@ -327,6 +351,8 @@ export default class GameScene extends Phaser.Scene {
 
         this.questionText.setText(this.matchState.currentQuestion ? this.matchState.currentQuestion.q : '');
         this.questionTextBottom.setText(this.matchState.currentQuestion ? this.matchState.currentQuestion.q : '');
+        this.winTextTop.setText('');
+        this.winTextBottom.setText('');
 
         for (let i = 0; i < 4; i += 1) {
             this.choiceTexts[i].setText('');
@@ -629,10 +655,37 @@ export default class GameScene extends Phaser.Scene {
     endGame() {
         this.matchState.roundLocked = true;
         this.timerEvent.remove(false);
-        this.questionText.setText(`Victoire: ${getWinnerLabel(this.matchState)}`);
-        this.questionTextBottom.setText('');
+        const winner = getWinnerLabel(this.matchState);
         this.choiceTexts.forEach((choiceText) => choiceText.setText(''));
-        this.turnText.setText('Partie terminee');
-        this.feedbackText.setText('Appuyez sur ESC ou utilisez le bouton RETOUR');
+        this.feedbackText.setText('');
+
+        if (this._isMobileLayout()) {
+            this.turnText.setText('');
+
+            this.questionText
+                .setText('')
+                .setAngle(180)
+                .setPosition(this.scale.width / 2, this._timerBarY - 66)
+                .setOrigin(0.5, 0.5);
+
+            this.questionTextBottom
+                .setText('')
+                .setAngle(0)
+                .setPosition(this.scale.width / 2, this._timerBarY + 42)
+                .setOrigin(0.5, 0.5);
+
+            this.winTextTop
+                .setText(winner === 'Joueur bleu' ? 'Vous avez gagne' : winner === 'Match nul' ? 'Match nul' : '')
+                .setStyle({ fill: '#ffffff' });
+            this.winTextBottom
+                .setText(winner === 'Joueur rouge' ? 'Vous avez gagne' : winner === 'Match nul' ? 'Match nul' : '')
+                .setStyle({ fill: '#ffffff' });
+        } else {
+            this.turnText.setText('Partie terminee').setStyle({ fill: '#f2c94c' });
+            this.questionText.setText(`Victoire: ${winner}`).setAngle(0);
+            this.questionTextBottom.setText('');
+            this.winTextTop.setText('');
+            this.winTextBottom.setText('');
+        }
     }
 }

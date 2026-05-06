@@ -75,18 +75,12 @@ export function resolveRound(state) {
         state.feedbackParts.push('Gauche: temps ecoule');
     } else if (leftCorrect) {
         state.rightHp = Math.max(0, state.rightHp - 1);
-        state.feedbackParts.push('Gauche: bonne reponse, 1 degat');
-    } else {
-        state.feedbackParts.push('Gauche: mauvaise reponse');
     }
 
     if (state.rightAnswer === null) {
         state.feedbackParts.push('Droite: temps ecoule');
     } else if (rightCorrect) {
         state.leftHp = Math.max(0, state.leftHp - 1);
-        state.feedbackParts.push('Droite: bonne reponse, 1 degat');
-    } else {
-        state.feedbackParts.push('Droite: mauvaise reponse');
     }
 
     if (state.leftHp <= 0 || state.rightHp <= 0) {
@@ -118,14 +112,14 @@ export function getPlayerStateText(state) {
 
 export function getWinnerLabel(state) {
     if (state.leftHp > state.rightHp) {
-        return 'Joueur gauche';
+        return 'Joueur bleu';
     }
 
     if (state.rightHp > state.leftHp) {
-        return 'Joueur droite';
+        return 'Joueur rouge';
     }
 
-    return 'Egalite';
+    return 'Match nul';
 }
 
 function pickRandomQuestion(questions, randomPicker) {
@@ -136,4 +130,3 @@ function pickRandomQuestion(questions, randomPicker) {
     const index = Math.floor(randomPicker() * questions.length);
     return questions[index];
 }
-
