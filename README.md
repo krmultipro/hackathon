@@ -162,6 +162,10 @@ set +a
 L'application est accessible sur `http://localhost:8080`.  
 La documentation Swagger UI est disponible sur `http://localhost:8080/swagger-ui.html`.
 
+> **Version mobile / tablette** : l'interface est responsive et accessible depuis n'importe quel appareil sur le même réseau en utilisant l'adresse IP de la machine hôte :  
+> `http://<IP_DE_LA_MACHINE_HOTE>:8080`  
+> Pour connaître l'IP hôte : `ip a` (Linux/macOS) ou `ipconfig` (Windows).
+
 ---
 
 ## Tests
