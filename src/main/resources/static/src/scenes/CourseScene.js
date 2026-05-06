@@ -42,7 +42,7 @@ export default class CourseScene extends Phaser.Scene {
       .text(
         0,
         0,
-        "Deux parcours pour reviser vite, progresser et entrer dans l arene.",
+        "Deux parcours clairs pour reviser, progresser pas a pas et entrer dans l arene en confiance.",
         {
           font: "22px Arial",
           fill: "#c6d7ea",
@@ -56,16 +56,14 @@ export default class CourseScene extends Phaser.Scene {
       accent: COURSE_THEME.cyan,
       eyebrow: "LOGIQUE",
       title: "Mathematiques",
-      description: "Calcul, reflexes et astuces pour aller au duel avec confiance.",
-      cta: "Commencer",
+      description: "Un parcours clair pour revoir les bases, s entrainer et gagner en assurance.",
     });
 
     this.frenchCard = this._createSubjectCard({
       accent: COURSE_THEME.yellow,
       eyebrow: "LANGUE",
       title: "Francais",
-      description: "Orthographe, grammaire et expression pour marquer des points.",
-      cta: "Commencer",
+      description: "Un parcours clair pour reviser orthographe, grammaire et expression efficacement.",
     });
 
     this.backButton = this.add
@@ -99,7 +97,7 @@ export default class CourseScene extends Phaser.Scene {
     });
   }
 
-  _createSubjectCard({ accent, eyebrow, title, description, cta }) {
+  _createSubjectCard({ accent, eyebrow, title, description }) {
     const container = this.add.container(0, 0);
     const shadow = this.add.rectangle(0, 10, 10, 10, 0x000000, 0.22);
     const panel = this.add
@@ -122,13 +120,6 @@ export default class CourseScene extends Phaser.Scene {
       fill: "#dbe9f7",
       wordWrap: { width: 280 },
     });
-    const ctaText = this.add.text(0, 0, cta, {
-      font: "bold 18px Arial",
-      fill: "#091321",
-      backgroundColor: Phaser.Display.Color.IntegerToColor(accent).rgba,
-      padding: { x: 14, y: 8 },
-    });
-
     container.add([
       shadow,
       panel,
@@ -138,7 +129,6 @@ export default class CourseScene extends Phaser.Scene {
       eyebrowText,
       titleText,
       descriptionText,
-      ctaText,
     ]);
 
     container.cardParts = {
@@ -151,7 +141,6 @@ export default class CourseScene extends Phaser.Scene {
       eyebrowText,
       titleText,
       descriptionText,
-      ctaText,
     };
 
     container.setInteractive(
@@ -191,7 +180,7 @@ export default class CourseScene extends Phaser.Scene {
       return;
     }
 
-    const { glow, shadow, panel, ctaText, accent } = card.cardParts;
+    const { glow, shadow, panel, accent } = card.cardParts;
     this.tweens.add({
       targets: card,
       y: isHovered ? card.baseY - 8 : card.baseY,
@@ -208,7 +197,6 @@ export default class CourseScene extends Phaser.Scene {
     });
     glow.setAlpha(isHovered ? 0.14 : 0.08);
     panel.setStrokeStyle(2, accent, isHovered ? 1 : 0.95);
-    ctaText.setStyle({ fill: isHovered ? "#ffffff" : "#091321" });
   }
 
   _onResize() {
@@ -261,8 +249,8 @@ export default class CourseScene extends Phaser.Scene {
     const base = Math.min(width, height);
     const heroWidth = Math.min(width * (isMobile ? 0.9 : 0.82), 980);
     const heroHeight = Math.min(height * (isMobile ? 0.18 : 0.24), isMobile ? 140 : 220);
-    const cardWidth = Math.min(isMobile ? width * 0.9 : width * 0.34, 420);
-    const cardHeight = isMobile ? 154 : 210;
+    const cardWidth = Math.min(isMobile ? width * 0.92 : width * 0.34, 420);
+    const cardHeight = isMobile ? 182 : 210;
     const titleSize = Phaser.Math.Clamp(
       Math.round(base * (isMobile ? 0.11 : 0.085)),
       32,
@@ -324,7 +312,6 @@ export default class CourseScene extends Phaser.Scene {
         eyebrowText,
         titleText,
         descriptionText,
-        ctaText,
       } = card.cardParts;
 
       const { x, y } = positions[index];
@@ -354,25 +341,17 @@ export default class CourseScene extends Phaser.Scene {
       titleText
         .setPosition(
           this._snap(-(cardWidth / 2) + 30),
-          this._snap(-(cardHeight / 2) + 42),
+          this._snap(-(cardHeight / 2) + (isMobile ? 50 : 42)),
         )
         .setStyle({ font: `900 ${cardTitleSize}px Arial` });
       descriptionText
         .setPosition(
           this._snap(-(cardWidth / 2) + 30),
-          this._snap(-(cardHeight / 2) + 74),
+          this._snap(-(cardHeight / 2) + (isMobile ? 90 : 74)),
         )
         .setStyle({
           font: `${cardTextSize}px Arial`,
-          wordWrap: { width: cardWidth - 96 },
-        });
-      ctaText
-        .setPosition(
-          this._snap(-(cardWidth / 2) + 30),
-          this._snap(cardHeight / 2 - 26),
-        )
-        .setStyle({
-          font: `bold ${Math.max(15, Math.round(cardTextSize))}px Arial`,
+          wordWrap: { width: cardWidth - (isMobile ? 72 : 96) },
         });
     });
 

@@ -116,20 +116,21 @@ export default class MenuScene extends Phaser.Scene {
       eyebrow: "APPRENDRE",
       title: "Cours",
       description:
-        "Des parcours clairs pour reviser vite et gagner en confiance.",
+        "Des parcours clairs pour reviser, comprendre et progresser pas a pas.",
     });
     this.tournamentCard = this._createActionCard({
       accent: MENU_THEME.coral,
       eyebrow: "AFFRONTER",
       title: "Tournoi",
       description:
-        "Des duels intenses pour tester tes reflexes et grimper au classement.",
+        "Des duels rapides pour tester tes acquis et gagner en niveau.",
     });
     this.leaderboardCard = this._createActionCard({
       accent: MENU_THEME.yellow,
       eyebrow: "BRILLER",
       title: "Classement",
-      description: "Vois les meilleurs et vise la premiere place.",
+      description:
+        "Suis ta progression, compare tes scores et vise la premiere place.",
     });
   }
 
@@ -156,13 +157,6 @@ export default class MenuScene extends Phaser.Scene {
       fill: "#dbe9f7",
       wordWrap: { width: 280 },
     });
-    const ctaText = this.add.text(0, 0, "Entrer", {
-      font: "bold 20px Arial",
-      fill: "#091321",
-      backgroundColor: Phaser.Display.Color.IntegerToColor(accent).rgba,
-      padding: { x: 14, y: 8 },
-    });
-
     container.add([
       shadow,
       panel,
@@ -172,7 +166,6 @@ export default class MenuScene extends Phaser.Scene {
       eyebrowText,
       titleText,
       descriptionText,
-      ctaText,
     ]);
     container.setSize(10, 10);
     container.setInteractive(
@@ -191,7 +184,6 @@ export default class MenuScene extends Phaser.Scene {
       eyebrowText,
       titleText,
       descriptionText,
-      ctaText,
     };
 
     return container;
@@ -325,7 +317,7 @@ export default class MenuScene extends Phaser.Scene {
       return;
     }
 
-    const { glow, shadow, panel, ctaText } = card.cardParts;
+    const { glow, shadow, panel } = card.cardParts;
     this.tweens.add({
       targets: card,
       y: isHovered ? card.baseY - 8 : card.baseY,
@@ -342,9 +334,6 @@ export default class MenuScene extends Phaser.Scene {
     });
     panel.setStrokeStyle(2, card.cardParts.accent, isHovered ? 1 : 0.9);
     glow.setAlpha(isHovered ? 0.14 : 0.08);
-    ctaText.setStyle({
-      fill: isHovered ? "#ffffff" : "#091321",
-    });
   }
 
   _startAmbientMotion() {
@@ -400,8 +389,8 @@ export default class MenuScene extends Phaser.Scene {
       height * (isMobile ? 0.18 : 0.3),
       isMobile ? 132 : 270,
     );
-    const cardWidth = Math.min(isMobile ? width * 0.9 : width * 0.25, 340);
-    const cardHeight = isMobile ? 118 : 220;
+    const cardWidth = Math.min(isMobile ? width * 0.93 : width * 0.25, 340);
+    const cardHeight = isMobile ? 176 : 220;
     const titleSize = Phaser.Math.Clamp(
       Math.round(base * (isMobile ? 0.13 : 0.095)),
       34,
@@ -413,13 +402,13 @@ export default class MenuScene extends Phaser.Scene {
       26,
     );
     const cardTitleSize = Phaser.Math.Clamp(
-      Math.round(base * (isMobile ? 0.06 : 0.04)),
-      22,
+      Math.round(base * (isMobile ? 0.062 : 0.04)),
+      24,
       36,
     );
     const cardTextSize = Phaser.Math.Clamp(
-      Math.round(base * (isMobile ? 0.024 : 0.024)),
-      11,
+      Math.round(base * (isMobile ? 0.027 : 0.024)),
+      13,
       20,
     );
     const chipTextSize = Phaser.Math.Clamp(
@@ -592,14 +581,14 @@ export default class MenuScene extends Phaser.Scene {
     cardTitleSize,
     cardTextSize,
   ) {
-    const cardY = isMobile ? height * 0.67 : height * 0.68;
-    const spacing = isMobile ? 190 : cardWidth + 26;
+    const cardY = isMobile ? height * 0.66 : height * 0.68;
+    const spacing = isMobile ? 206 : cardWidth + 26;
 
     const positions = isMobile
       ? [
-          { x: width / 2, y: cardY - 132 },
-          { x: width / 2, y: cardY },
-          { x: width / 2, y: cardY + 132 },
+          { x: width / 2, y: cardY - 210 },
+          { x: width / 2, y: cardY + 4 },
+          { x: width / 2, y: cardY + 218 },
         ]
       : [
           { x: width / 2 - spacing, y: cardY },
@@ -618,7 +607,6 @@ export default class MenuScene extends Phaser.Scene {
           eyebrowText,
           titleText,
           descriptionText,
-          ctaText,
           title,
         } = card.cardParts;
         const { x, y } = positions[index];
@@ -652,7 +640,7 @@ export default class MenuScene extends Phaser.Scene {
         titleText
           .setPosition(
             this._snap(-(cardWidth / 2) + (isMobile ? 28 : 34)),
-            this._snap(-(cardHeight / 2) + (isMobile ? 36 : 58)),
+            this._snap(-(cardHeight / 2) + (isMobile ? 48 : 58)),
           )
           .setStyle({
             font: `900 ${Math.max(isMobile && title === "Classement" ? cardTitleSize - 2 : cardTitleSize, 20)}px Arial`,
@@ -662,24 +650,14 @@ export default class MenuScene extends Phaser.Scene {
             this._snap(-(cardWidth / 2) + (isMobile ? 28 : 34)),
             this._snap(
               -(cardHeight / 2) +
-                (isMobile ? (title === "Classement" ? 54 : 58) : 108),
+                (isMobile ? 90 : 108),
             ),
           )
           .setStyle({
             font: `${Math.max(isMobile && title === "Classement" ? cardTextSize - 1 : cardTextSize, 10)}px Arial`,
             wordWrap: {
-              width:
-                cardWidth -
-                (isMobile ? (title === "Classement" ? 118 : 96) : 86),
+              width: cardWidth - (isMobile ? 68 : 86),
             },
-          });
-        ctaText
-          .setPosition(
-            this._snap(-(cardWidth / 2) + (isMobile ? 28 : 34)),
-            this._snap(cardHeight / 2 - (isMobile ? 24 : 46)),
-          )
-          .setStyle({
-            font: `bold ${Math.max(isMobile ? 13 : 16, Math.round(cardTextSize))}px Arial`,
           });
       },
     );
