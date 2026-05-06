@@ -149,7 +149,13 @@ Les variables d'environnement suivantes sont requises :
 git clone <url-du-repo>
 cd hackathon
 
-# Lancer l'application
+# Copier et remplir le fichier de configuration
+cp .env.example .env
+
+# Injecter les variables d'environnement et lancer l'application
+set -a
+source .env
+set +a
 ./mvnw spring-boot:run
 ```
 
