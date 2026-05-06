@@ -1,7 +1,5 @@
-import { apiPost } from '../../utils/api.js';
+import { apiGet, apiPost } from '../../utils/api.js';
 import { API_BASE_URL } from '../../utils/constants.js';
-
-const STORAGE_KEY = 'educarena_user';
 
 export async function login(username, password) {
     try {
@@ -9,14 +7,7 @@ export async function login(username, password) {
             username,
             password
         });
-
-        const user = {
-            username: response.username,
-            token: response.token
-        };
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        return user;
+        return { username: response.username };
     } catch (error) {
         throw new Error(error.message || 'Identifiants invalides');
     }
@@ -28,24 +19,25 @@ export async function register(username, password) {
             username,
             password
         });
-
-        const user = {
-            username: response.username,
-            token: response.token
-        };
-
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-        return user;
+        return { username: response.username };
     } catch (error) {
         throw new Error(error.message || 'Inscription impossible');
     }
 }
 
-export function getStoredUser() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
+export async function checkSession() {
+    try {
+        const response = await apiGet(`${API_BASE_URL}/auth/me`);
+        return { username: response.username };
+    } catch {
+        return null;
+    }
 }
 
-export function clearStoredUser() {
-    localStorage.removeItem(STORAGE_KEY);
+export async function logoutBackend() {
+    try {
+        await apiPost(`${API_BASE_URL}/auth/logout`, {});
+    } catch {
+        // ignore, le cookie sera supprimé côté client si besoin
+    }
 }
