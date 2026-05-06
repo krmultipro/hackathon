@@ -42,7 +42,7 @@ export default class CourseScene extends Phaser.Scene {
       .text(
         0,
         0,
-        "Deux parcours clairs pour reviser, progresser pas a pas et entrer dans l arene en confiance.",
+        "Un parcours clair pour réviser, progresser pas à pas et entrer dans l arène en confiance.",
         {
           font: "22px Arial",
           fill: "#c6d7ea",
@@ -59,13 +59,6 @@ export default class CourseScene extends Phaser.Scene {
       description: "Un parcours clair pour revoir les bases, s'entraîner et gagner en assurance.",
     });
 
-    this.frenchCard = this._createSubjectCard({
-      accent: COURSE_THEME.yellow,
-      eyebrow: "LANGUE",
-      title: "Français",
-      description: "Un parcours clair pour réviser orthographe, grammaire et expression efficacement.",
-    });
-
     this.backButton = this.add
       .text(0, 0, "Retour", {
         font: "bold 18px Arial",
@@ -77,7 +70,6 @@ export default class CourseScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     this._wireCard(this.mathCard, () => this.scene.start("MathCourseScene"));
-    this._wireCard(this.frenchCard, () => this.scene.start("FrenchCourseScene"));
 
     this.backButton.on("pointerover", () =>
       this.backButton.setStyle({ backgroundColor: "#2563eb" }),
@@ -292,17 +284,9 @@ export default class CourseScene extends Phaser.Scene {
       });
 
     const cardY = isMobile ? height * 0.54 : height * 0.58;
-    const positions = isMobile
-      ? [
-          { x: width / 2, y: cardY - 96 },
-          { x: width / 2, y: cardY + 96 },
-        ]
-      : [
-          { x: width / 2 - (cardWidth / 2) - 18, y: cardY },
-          { x: width / 2 + (cardWidth / 2) + 18, y: cardY },
-        ];
+    const positions = [{ x: width / 2, y: cardY }];
 
-    [this.mathCard, this.frenchCard].forEach((card, index) => {
+    [this.mathCard].forEach((card, index) => {
       const {
         shadow,
         panel,
