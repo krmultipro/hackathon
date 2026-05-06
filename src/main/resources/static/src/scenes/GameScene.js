@@ -207,14 +207,14 @@ export default class GameScene extends Phaser.Scene {
         this.timerBarBg.strokeRoundedRect(width / 2 - barW / 2 - 2, barY - barH / 2 - 2, barW + 4, barH + 4, r + 1);
         this.escText.setPosition(width - 12, isMobile ? height / 2 - 22 : height - 24).setStyle({ font: fs(14, 10, 18) });
 
-        const targetCharH = Phaser.Math.Clamp(Math.round((isMobile ? 0.2 : 0.42) * height), 110, 320);
+        const targetCharH = Phaser.Math.Clamp(Math.round((isMobile ? 0.18 : 0.42) * height), 100, 320);
         const leftImg = this.leftFighter.texture.getSourceImage();
         const rightImg = this.rightFighter.texture.getSourceImage();
         const scaleL = targetCharH / leftImg.height;
         const scaleR = targetCharH / rightImg.height;
 
         const btnPad = 10;
-        const btnH = Math.min(isMobile ? 72 : 68, height * (isMobile ? 0.09 : 0.1));
+        const btnH = Math.min(isMobile ? 58 : 68, height * (isMobile ? 0.072 : 0.1));
         const gridRows = isMobile ? 2 : 1;
         const gridH = gridRows * btnH + (gridRows + 1) * btnPad;
         const sideW = width * (isMobile ? 0.46 : 0.22);
@@ -484,9 +484,9 @@ export default class GameScene extends Phaser.Scene {
         const pad = 10;
         const cols = isMobile ? 2 : 4;
         const rows = isMobile ? 2 : 1;
-        const sideW = width * (isMobile ? 0.62 : 0.22);
+        const sideW = width * (isMobile ? 0.56 : 0.22);
         const btnW = (sideW - pad * (cols + 1)) / cols;
-        const btnH = Math.min(isMobile ? 72 : 68, height * (isMobile ? 0.09 : 0.1));
+        const btnH = Math.min(isMobile ? 58 : 68, height * (isMobile ? 0.072 : 0.1));
         const gridH = rows * btnH + (rows + 1) * pad;
         const topGridTop = isMobile ? height * 0.05 : height - gridH - pad;
         const bottomGridTop = isMobile ? height - gridH - height * 0.05 : height - gridH - pad;
