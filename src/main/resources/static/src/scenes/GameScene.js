@@ -39,6 +39,7 @@ export default class GameScene extends Phaser.Scene {
         });
 
         this.bg = this.add.rectangle(0, 0, 1, 1, 0x101626).setOrigin(0);
+        this.mobileDivider = this.add.rectangle(0, 0, 1, 1, 0x334766).setAlpha(0.45);
 
         const p1tex = this.p1char === 'boy' ? 'p1boy' : 'p1girl';
         const p2tex = this.p2char === 'boy' ? 'p2boy' : 'p2girl';
@@ -61,6 +62,12 @@ export default class GameScene extends Phaser.Scene {
         this.sceneBg = this.add.image(0, 0, 'sceneBg').setAlpha(0.2).setDepth(0);
 
         this.questionText = this.add.text(0, 0, '', {
+            font: '26px Arial',
+            fill: '#ffffff',
+            align: 'center',
+            wordWrap: { width: 400 }
+        }).setOrigin(0.5, 0);
+        this.questionTextBottom = this.add.text(0, 0, '', {
             font: '26px Arial',
             fill: '#ffffff',
             align: 'center',
@@ -163,18 +170,29 @@ export default class GameScene extends Phaser.Scene {
         const fs = (n, min, max) => `${Phaser.Math.Clamp(Math.round(n * base / 600), min, max)}px Arial`;
 
         this.bg.setSize(width, height);
+        this.mobileDivider.setVisible(isMobile);
+        if (isMobile) {
+            this.mobileDivider.setPosition(width / 2, height / 2).setSize(width, 4);
+        }
 
         const hSize = Phaser.Math.Clamp(Math.round(base * 0.033), 12, 22);
         this._heartSize = hSize;
-        this.leftHpGfx.setPosition(12, 10);
-        this.rightHpGfx.setPosition(width - 12, 10);
-        this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, hSize, false);
+        const heartGap = hSize * 0.3;
+        const heartGroupW = this.matchState.maxHp * hSize + (this.matchState.maxHp - 1) * heartGap;
+        this.leftHpGfx.setPosition(
+            isMobile ? 12 + heartGroupW : 12,
+            isMobile ? 10 + hSize : 10
+        );
+        this.rightHpGfx.setPosition(width - 12, isMobile ? height - hSize - 10 : 10);
+        this.leftHpGfx.setAngle(isMobile ? 180 : 0);
+        this.rightHpGfx.setAngle(0);
+        this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, hSize, isMobile);
         this._drawHearts(this.rightHpGfx, this.matchState.rightHp, this.matchState.maxHp, hSize, true);
 
-        const barW = width * 0.5;
+        const barW = width * (isMobile ? 0.62 : 0.5);
         const barH = Phaser.Math.Clamp(Math.round(height * 0.028), 12, 22);
-        const barY = height * 0.165;
-        const turnY = Math.round((10 + hSize + barY) / 2);
+        const barY = isMobile ? height * 0.5 : height * 0.165;
+        const turnY = isMobile ? Math.round(barY - barH - 24) : Math.round((10 + hSize + barY) / 2);
         this.turnText.setPosition(width / 2, turnY).setStyle({ font: fs(24, 14, 30) });
         this._timerBarW = barW;
         this._timerBarH = barH;
@@ -187,9 +205,9 @@ export default class GameScene extends Phaser.Scene {
         this.timerBarBg.fillRoundedRect(width / 2 - barW / 2 - 2, barY - barH / 2 - 2, barW + 4, barH + 4, r + 1);
         this.timerBarBg.lineStyle(1.5, 0x444477, 1);
         this.timerBarBg.strokeRoundedRect(width / 2 - barW / 2 - 2, barY - barH / 2 - 2, barW + 4, barH + 4, r + 1);
-        this.escText.setPosition(width - 12, height - 24).setStyle({ font: fs(14, 10, 18) });
+        this.escText.setPosition(width - 12, isMobile ? height / 2 - 22 : height - 24).setStyle({ font: fs(14, 10, 18) });
 
-        const targetCharH = Phaser.Math.Clamp(Math.round((isMobile ? 0.28 : 0.42) * height), 130, 320);
+        const targetCharH = Phaser.Math.Clamp(Math.round((isMobile ? 0.2 : 0.42) * height), 110, 320);
         const leftImg = this.leftFighter.texture.getSourceImage();
         const rightImg = this.rightFighter.texture.getSourceImage();
         const scaleL = targetCharH / leftImg.height;
@@ -199,18 +217,17 @@ export default class GameScene extends Phaser.Scene {
         const btnH = Math.min(isMobile ? 72 : 68, height * (isMobile ? 0.09 : 0.1));
         const gridRows = isMobile ? 2 : 1;
         const gridH = gridRows * btnH + (gridRows + 1) * btnPad;
-        const gridTop = height - gridH - btnPad;
         const sideW = width * (isMobile ? 0.46 : 0.22);
+        const fighterYTop = isMobile ? height * 0.28 : height - gridH - btnPad - targetCharH / 2 - 28;
+        const fighterYBottom = isMobile ? height * 0.72 : fighterYTop;
+        const fighterXLeft = isMobile ? width / 2 : sideW / 2;
+        const fighterXRight = isMobile ? width / 2 : width - sideW / 2;
 
-        const fighterY = gridTop - targetCharH / 2 - 28;
-        const fighterXLeft = sideW / 2;
-        const fighterXRight = width - sideW / 2;
+        this.leftFighter.setPosition(fighterXLeft, fighterYTop).setScale(scaleL).setAngle(isMobile ? 180 : 0);
+        this.rightFighter.setPosition(fighterXRight, fighterYBottom).setScale(scaleR).setFlipX(!isMobile).setAngle(0);
 
-        this.leftFighter.setPosition(fighterXLeft, fighterY).setScale(scaleL);
-        this.rightFighter.setPosition(fighterXRight, fighterY).setScale(scaleR).setFlipX(true);
-
-        const blockTop = isMobile ? height * 0.34 : height * 0.28;
-        const blockWidth = isMobile ? width * 0.8 : width * 0.5;
+        const blockTop = isMobile ? height * 0.45 : height * 0.28;
+        const blockWidth = isMobile ? width * 0.72 : width * 0.5;
 
         this.sceneBg.setPosition(width / 2, height / 2);
         const bgScaleW = width / this.sceneBg.width;
@@ -221,6 +238,13 @@ export default class GameScene extends Phaser.Scene {
         this.questionText
             .setPosition(width / 2, blockTop)
             .setStyle({ font: fs(26, 15, 32) })
+            .setAngle(isMobile ? 180 : 0)
+            .setWordWrapWidth(blockWidth);
+        this.questionTextBottom
+            .setVisible(isMobile)
+            .setPosition(width / 2, height * 0.55)
+            .setStyle({ font: fs(26, 15, 32) })
+            .setAngle(0)
             .setWordWrapWidth(blockWidth);
 
         const gap = isMobile ? 32 : 42;
@@ -231,17 +255,17 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.feedbackText
-            .setPosition(width / 2, blockTop + (isMobile ? 200 : 250))
+            .setPosition(width / 2, blockTop + (isMobile ? 120 : 250))
             .setStyle({ font: fs(20, 12, 24) })
             .setWordWrapWidth(blockWidth);
 
         this.helpText
-            .setPosition(width / 2, blockTop + (isMobile ? 230 : 300))
+            .setPosition(width / 2, blockTop + (isMobile ? 148 : 300))
             .setStyle({ font: fs(16, 10, 20) })
-            .setText(isMobile ? 'Touchez les boutons ci-dessous' : 'PC: J1 A/Z/E/R | J2 U/I/O/P');
+            .setText(isMobile ? '' : 'PC: J1 A/Z/E/R | J2 U/I/O/P');
 
         this.backButton
-            .setPosition(12, height - (isMobile ? 30 : 20))
+            .setPosition(12, isMobile ? height / 2 + 26 : height - 20)
             .setStyle({
                 font: `bold ${Phaser.Math.Clamp(Math.round((isMobile ? 18 : 16) * base / 600), isMobile ? 16 : 11, isMobile ? 24 : 20)}px Arial`,
                 padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
@@ -271,7 +295,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     updateUi() {
-        this.turnText.setText(getPlayerStateText(this.matchState));
+        this.turnText.setText('');
         this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, this._heartSize || 16, false);
         this._drawHearts(this.rightHpGfx, this.matchState.rightHp, this.matchState.maxHp, this._heartSize || 16, true);
 
@@ -302,6 +326,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.questionText.setText(this.matchState.currentQuestion ? this.matchState.currentQuestion.q : '');
+        this.questionTextBottom.setText(this.matchState.currentQuestion ? this.matchState.currentQuestion.q : '');
 
         for (let i = 0; i < 4; i += 1) {
             this.choiceTexts[i].setText('');
@@ -459,11 +484,12 @@ export default class GameScene extends Phaser.Scene {
         const pad = 10;
         const cols = isMobile ? 2 : 4;
         const rows = isMobile ? 2 : 1;
-        const sideW = width * (isMobile ? 0.46 : 0.22);
+        const sideW = width * (isMobile ? 0.62 : 0.22);
         const btnW = (sideW - pad * (cols + 1)) / cols;
         const btnH = Math.min(isMobile ? 72 : 68, height * (isMobile ? 0.09 : 0.1));
         const gridH = rows * btnH + (rows + 1) * pad;
-        const gridTop = height - gridH - pad;
+        const topGridTop = isMobile ? height * 0.05 : height - gridH - pad;
+        const bottomGridTop = isMobile ? height - gridH - height * 0.05 : height - gridH - pad;
         const leftKeys = ['A', 'Z', 'E', 'R'];
         const rightKeys = ['U', 'I', 'O', 'P'];
         const baseFontPx = Math.round(btnH * (this.subject === 'fr' ? 0.33 : 0.44));
@@ -516,19 +542,27 @@ export default class GameScene extends Phaser.Scene {
         for (let i = 0; i < 4; i += 1) {
             const col = isMobile ? i % cols : i;
             const row = isMobile ? Math.floor(i / cols) : 0;
-            const cy = gridTop + row * (btnH + pad) + btnH / 2;
+            const cy1 = topGridTop + row * (btnH + pad) + btnH / 2;
+            const cy2 = bottomGridTop + row * (btnH + pad) + btnH / 2;
 
-            const cx1 = pad + col * (btnW + pad) + btnW / 2;
-            const btn1 = makeBtn(cx1, cy, 0x1a3d7a, 0x2a5db0, 0x56ccf2, leftKeys[i], () => {
+            const cx1 = isMobile
+                ? width / 2 - sideW / 2 + pad + col * (btnW + pad) + btnW / 2
+                : pad + col * (btnW + pad) + btnW / 2;
+            const btn1 = makeBtn(cx1, cy1, 0x1a3d7a, 0x2a5db0, 0x56ccf2, leftKeys[i], () => {
                 const changed = submitAnswer(this.matchState, 'left', i);
                 if (changed) {
                     this._checkBothAnswered();
                 }
             });
+            if (isMobile) {
+                btn1.lbl.setAngle(180);
+            }
             this.p1Buttons.push(btn1);
 
-            const cx2 = width - pad - (cols - 1 - col) * (btnW + pad) - btnW / 2;
-            const btn2 = makeBtn(cx2, cy, 0x7a1a1a, 0xb02a2a, 0xff7675, rightKeys[i], () => {
+            const cx2 = isMobile
+                ? width / 2 - sideW / 2 + pad + col * (btnW + pad) + btnW / 2
+                : width - pad - (cols - 1 - col) * (btnW + pad) - btnW / 2;
+            const btn2 = makeBtn(cx2, cy2, 0x7a1a1a, 0xb02a2a, 0xff7675, rightKeys[i], () => {
                 const changed = submitAnswer(this.matchState, 'right', i);
                 if (changed) {
                     this._checkBothAnswered();
@@ -596,6 +630,7 @@ export default class GameScene extends Phaser.Scene {
         this.matchState.roundLocked = true;
         this.timerEvent.remove(false);
         this.questionText.setText(`Victoire: ${getWinnerLabel(this.matchState)}`);
+        this.questionTextBottom.setText('');
         this.choiceTexts.forEach((choiceText) => choiceText.setText(''));
         this.turnText.setText('Partie terminee');
         this.feedbackText.setText('Appuyez sur ESC ou utilisez le bouton RETOUR');
