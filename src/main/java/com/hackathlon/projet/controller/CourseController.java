@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +51,7 @@ public class CourseController {
             @ApiResponse(responseCode = "400", description = "Requête invalide")
     })
     @PostMapping
-    public ResponseEntity<Course> create(@RequestBody Course course) {
+    public ResponseEntity<Course> create(@Valid @RequestBody Course course) {
         Course saved = courseService.create(course);
         return ResponseEntity
                 .created(URI.create("/api/courses/" + saved.getId()))
@@ -65,7 +66,7 @@ public class CourseController {
     @PutMapping("/{id}")
     public ResponseEntity<Course> update(
             @Parameter(description = "ID du cours", example = "1") @PathVariable Long id,
-            @RequestBody Course details) {
+            @Valid @RequestBody Course details) {
         return ResponseEntity.ok(courseService.update(id, details));
     }
 

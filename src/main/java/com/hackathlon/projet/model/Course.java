@@ -1,6 +1,8 @@
 package com.hackathlon.projet.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.time.LocalDateTime;
 
@@ -18,9 +20,12 @@ public class Course {
     @JoinColumn(name = "topic_id", nullable = false)
     private Topic topic;
 
+    @NotBlank
+    @Size(max = 255)
     @Column(nullable = false)
     private String title;
 
+    @Size(max = 10000)
     private String content;
 
     @Column(name = "created_at")

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,7 +59,7 @@ public class QuestionController {
                         @ApiResponse(responseCode = "400", description = "Requête invalide")
         })
         @PostMapping
-        public ResponseEntity<Question> create(@RequestBody Question question) {
+        public ResponseEntity<Question> create(@Valid @RequestBody Question question) {
                 Question saved = questionService.create(question);
                 return ResponseEntity
                                 .created(URI.create("/api/questions/" + saved.getId()))
@@ -73,7 +74,7 @@ public class QuestionController {
         @PutMapping("/{id}")
         public ResponseEntity<Question> update(
                         @Parameter(description = "ID de la question", example = "1") @PathVariable Long id,
-                        @RequestBody Question details) {
+                        @Valid @RequestBody Question details) {
                 return ResponseEntity.ok(questionService.update(id, details));
         }
 

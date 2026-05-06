@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +51,7 @@ public class SubjectController {
             @ApiResponse(responseCode = "400", description = "Requête invalide")
     })
     @PostMapping
-    public ResponseEntity<Subject> create(@RequestBody Subject subject) {
+    public ResponseEntity<Subject> create(@Valid @RequestBody Subject subject) {
         Subject saved = subjectService.create(subject);
         return ResponseEntity
                 .created(URI.create("/api/subjects/" + saved.getId()))
@@ -65,7 +66,7 @@ public class SubjectController {
     @PutMapping("/{id}")
     public ResponseEntity<Subject> update(
             @Parameter(description = "ID de la matière", example = "1") @PathVariable Long id,
-            @RequestBody Subject details) {
+            @Valid @RequestBody Subject details) {
         return ResponseEntity.ok(subjectService.update(id, details));
     }
 
