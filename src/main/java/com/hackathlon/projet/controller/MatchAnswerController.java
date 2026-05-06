@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +51,7 @@ public class MatchAnswerController {
                         @ApiResponse(responseCode = "400", description = "Requête invalide")
         })
         @PostMapping
-        public ResponseEntity<MatchAnswer> create(@RequestBody MatchAnswer matchAnswer) {
+        public ResponseEntity<MatchAnswer> create(@Valid @RequestBody MatchAnswer matchAnswer) {
                 MatchAnswer saved = matchAnswerService.create(matchAnswer);
                 return ResponseEntity
                                 .created(URI.create("/match-answers/" + saved.getId()))
@@ -65,7 +66,7 @@ public class MatchAnswerController {
         @PutMapping("/{id}")
         public ResponseEntity<MatchAnswer> update(
                         @Parameter(description = "Identifiant de la réponse", example = "1") @PathVariable Long id,
-                        @RequestBody MatchAnswer details) {
+                        @Valid @RequestBody MatchAnswer details) {
                 return ResponseEntity.ok(matchAnswerService.update(id, details));
         }
 

@@ -1,5 +1,5 @@
 import config from './config.js';
-import { clearStoredUser, getStoredUser, login, register } from './modules/auth/authService.js';
+import { checkSession, login, logoutBackend, register } from './modules/auth/authService.js';
 
 export function startGame() {
     if (!window.game) {
@@ -52,11 +52,11 @@ function showGame() {
     startGame();
 }
 
-export function logout() {
+export async function logout() {
     const authScreen = document.getElementById('auth-screen');
     const passwordInput = document.getElementById('password');
 
-    clearStoredUser();
+    await logoutBackend();
 
     if (window.game) {
         window.game.destroy(true);
@@ -138,12 +138,13 @@ function bindAuthUi() {
     }
 }
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
     window.logout = logout;
     document.body.classList.add('auth-active');
     bindAuthUi();
 
-    if (getStoredUser()) {
+    const user = await checkSession();
+    if (user) {
         showGame();
     }
 });
