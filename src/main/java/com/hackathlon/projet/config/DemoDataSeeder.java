@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,7 @@ public class DemoDataSeeder implements CommandLineRunner {
     @Value("${app.seed.demo-players:false}")
     private boolean seedDemoPlayers;
 
-    @Value("${app.seed.password}")
+    @Value("${app.seed.password:}")
     private String seedPassword;
 
     public DemoDataSeeder(PlayerRepository playerRepository, PasswordEncoder passwordEncoder) {
@@ -35,6 +36,10 @@ public class DemoDataSeeder implements CommandLineRunner {
     public void run(String... args) {
         if (!seedDemoPlayers) {
             return;
+        }
+
+        if (!StringUtils.hasText(seedPassword)) {
+            throw new IllegalStateException("SEED_PASSWORD est requis quand app.seed.demo-players=true");
         }
 
         List<DemoPlayer> demoPlayers = List.of(
