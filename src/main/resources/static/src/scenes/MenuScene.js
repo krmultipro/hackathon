@@ -250,12 +250,30 @@ export default class MenuScene extends Phaser.Scene {
       .setOrigin(0.5, 0)
       .setDepth(42)
       .setVisible(false);
+    this.leaderboardContentMaskShape = this.make.graphics({ x: 0, y: 0, add: false });
+    this.leaderboardContent.setMask(
+      this.leaderboardContentMaskShape.createGeometryMask(),
+    );
+    this.leaderboardRows = Array.from({ length: 10 }, () =>
+      this.add
+        .text(0, 0, "", {
+          font: "18px Arial",
+          fill: "#dbe9f7",
+          align: "left",
+        })
+        .setOrigin(0.5, 0)
+        .setDepth(42)
+        .setVisible(false),
+    );
+    this.leaderboardRows.forEach((row) => {
+      row.setMask(this.leaderboardContentMaskShape.createGeometryMask());
+    });
     this.closeLeaderboardButton = this.add
-      .text(0, 0, "Fermer", {
-        font: "bold 20px Arial",
-        fill: "#091321",
-        backgroundColor: "#49d6ff",
-        padding: { x: 16, y: 10 },
+      .text(0, 0, "x", {
+        font: "900 26px Arial",
+        fill: "#f7fbff",
+        backgroundColor: "#20324d",
+        padding: { x: 12, y: 6 },
       })
       .setOrigin(0.5)
       .setDepth(42)
@@ -665,6 +683,19 @@ export default class MenuScene extends Phaser.Scene {
 
   _layoutLeaderboardModal(width, height, modalWidth, modalHeight, base) {
     const isMobile = width < 960 || height > width;
+    this._leaderboardModalWidth = modalWidth;
+    this._leaderboardModalHeight = modalHeight;
+    this._leaderboardContentBaseFont = Math.max(
+      isMobile ? 15 : 16,
+      Math.round(base * 0.03),
+    );
+    this._leaderboardContentMinFont = isMobile ? 11 : 12;
+    this._leaderboardContentWidth = modalWidth - (isMobile ? 64 : 90);
+    this._leaderboardContentMaxHeight = modalHeight * (isMobile ? 0.58 : 0.56);
+    this._leaderboardRowsStartY = this._snap(
+      height / 2 - modalHeight * (isMobile ? 0.15 : 0.18),
+    );
+
     this.leaderboardOverlay.setSize(width, height);
     this.leaderboardPanel
       .setPosition(this._snap(width / 2), this._snap(height / 2))
@@ -691,31 +722,45 @@ export default class MenuScene extends Phaser.Scene {
     this.leaderboardContent
       .setPosition(
         this._snap(width / 2),
-        this._snap(height / 2 - modalHeight * (isMobile ? 0.15 : 0.18)),
+        this._leaderboardRowsStartY,
       )
       .setStyle({
-        font: `${Math.max(isMobile ? 15 : 16, Math.round(base * 0.03))}px Arial`,
-        wordWrap: { width: modalWidth - (isMobile ? 64 : 90) },
+        font: `${this._leaderboardContentBaseFont}px Arial`,
+        wordWrap: { width: this._leaderboardContentWidth },
       });
+    this._layoutLeaderboardRows(width / 2);
+    this.leaderboardContentMaskShape.clear();
+    this.leaderboardContentMaskShape.fillStyle(0xffffff, 1);
+    this.leaderboardContentMaskShape.fillRect(
+      this._snap(width / 2 - this._leaderboardContentWidth / 2),
+      this._leaderboardRowsStartY,
+      this._snap(this._leaderboardContentWidth),
+      this._snap(this._leaderboardContentMaxHeight),
+    );
     this.closeLeaderboardButton
       .setPosition(
-        this._snap(width / 2),
-        this._snap(height / 2 + modalHeight * (isMobile ? 0.42 : 0.39)),
+        this._snap(width / 2 + modalWidth / 2 - (isMobile ? 28 : 34)),
+        this._snap(height / 2 - modalHeight / 2 + (isMobile ? 28 : 34)),
       )
       .setStyle({
-        font: `bold ${Math.max(isMobile ? 15 : 16, Math.round(base * 0.024))}px Arial`,
+        font: `900 ${Math.max(isMobile ? 22 : 24, Math.round(base * 0.04))}px Arial`,
+        padding: { x: isMobile ? 10 : 12, y: isMobile ? 4 : 6 },
       });
+    this._fitLeaderboardContent();
   }
 
   async openLeaderboard() {
     this._setLeaderboardVisibility(true);
+    this._hideLeaderboardRows();
     this.leaderboardContent.setText("Chargement du classement...");
+    this._fitLeaderboardContent();
 
     try {
       const players = await getGlobalLeaderboard();
 
       if (!players.length) {
         this.leaderboardContent.setText("Aucun joueur classe pour le moment.");
+        this._fitLeaderboardContent();
         return;
       }
 
@@ -725,11 +770,98 @@ export default class MenuScene extends Phaser.Scene {
         return `${prefix}  ${player.username}  -  ${player.globalElo || 0} ELO`;
       });
 
-      this.leaderboardContent.setText(lines.join("\n\n"));
+      this._showLeaderboardRows(lines);
     } catch (error) {
+      this._hideLeaderboardRows();
       this.leaderboardContent.setText(
         error.message || "Impossible de charger le classement.",
       );
+      this._fitLeaderboardContent();
+    }
+  }
+
+  _layoutLeaderboardRows(centerX) {
+    if (!this.leaderboardRows) {
+      return;
+    }
+
+    const visibleRows = this.leaderboardRows.filter((row) => row.visible);
+    const rowCount = visibleRows.length || this.leaderboardRows.length;
+    const targetFont = Math.max(
+      this._leaderboardContentMinFont,
+      Math.min(this._leaderboardContentBaseFont, 18 - Math.max(0, rowCount - 7)),
+    );
+    const lineGap = Math.max(6, Math.round(targetFont * 0.55));
+
+    this.leaderboardRows.forEach((row, index) => {
+      row
+        .setPosition(
+          this._snap(centerX),
+          this._snap(this._leaderboardRowsStartY + index * (targetFont + lineGap)),
+        )
+        .setStyle({
+          font: `${targetFont}px Arial`,
+          wordWrap: { width: this._leaderboardContentWidth },
+        });
+    });
+  }
+
+  _showLeaderboardRows(lines) {
+    const rankColors = ["#ffd84a", "#d7e4f2", "#ff9f6e"];
+    const defaultColor = "#8fa6bf";
+    this.leaderboardContent.setText("");
+    this.leaderboardContent.setVisible(false);
+
+    this.leaderboardRows.forEach((row, index) => {
+      const text = lines[index] || "";
+      row.setText(text);
+      row.setVisible(Boolean(text));
+      row.setStyle({
+        fill: rankColors[index] || defaultColor,
+      });
+    });
+
+    this._layoutLeaderboardRows(this.scale.width / 2);
+  }
+
+  _hideLeaderboardRows() {
+    if (!this.leaderboardRows) {
+      return;
+    }
+
+    this.leaderboardRows.forEach((row) => {
+      row.setText("");
+      row.setVisible(false);
+    });
+    this.leaderboardContent.setVisible(true);
+  }
+
+  _fitLeaderboardContent() {
+    if (
+      !this.leaderboardContent ||
+      !this._leaderboardContentBaseFont ||
+      !this._leaderboardContentWidth ||
+      !this._leaderboardContentMaxHeight
+    ) {
+      return;
+    }
+
+    let fontSize = this._leaderboardContentBaseFont;
+    this.leaderboardContent.setLineSpacing(2);
+    this.leaderboardContent.setStyle({
+      font: `${fontSize}px Arial`,
+      wordWrap: { width: this._leaderboardContentWidth },
+    });
+
+    while (
+      this.leaderboardContent.height > this._leaderboardContentMaxHeight &&
+      fontSize > this._leaderboardContentMinFont
+    ) {
+      fontSize -= 1;
+      this.leaderboardContent.setStyle({
+        font: `${fontSize}px Arial`,
+        wordWrap: { width: this._leaderboardContentWidth },
+      });
     }
   }
 
@@ -744,6 +876,10 @@ export default class MenuScene extends Phaser.Scene {
     this.leaderboardTitle.setVisible(isVisible);
     this.leaderboardSubtitle.setVisible(isVisible);
     this.leaderboardContent.setVisible(isVisible);
+    if (!isVisible) {
+      this._hideLeaderboardRows();
+    }
+    this.leaderboardRows.forEach((row) => row.setVisible(isVisible && row.text.length > 0));
     this.closeLeaderboardButton.setVisible(isVisible);
   }
 }
