@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -74,7 +75,7 @@ public class PlayerController {
                         @ApiResponse(responseCode = "400", description = "Requête invalide")
         })
         @PostMapping
-        public ResponseEntity<Player> create(@RequestBody Player player) {
+        public ResponseEntity<Player> create(@Valid @RequestBody Player player) {
                 Player saved = playerService.create(player);
                 return ResponseEntity
                                 .created(URI.create("/api/players/" + saved.getId()))
@@ -89,7 +90,7 @@ public class PlayerController {
         @PutMapping("/{id}")
         public ResponseEntity<Player> update(
                         @Parameter(description = "ID du joueur", example = "1") @PathVariable Long id,
-                        @RequestBody Player details) {
+                        @Valid @RequestBody Player details) {
                 return ResponseEntity.ok(playerService.update(id, details));
         }
 

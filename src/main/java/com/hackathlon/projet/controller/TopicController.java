@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,7 +59,7 @@ public class TopicController {
             @ApiResponse(responseCode = "400", description = "Requête invalide")
     })
     @PostMapping
-    public ResponseEntity<Topic> create(@RequestBody Topic topic) {
+    public ResponseEntity<Topic> create(@Valid @RequestBody Topic topic) {
         Topic saved = topicService.create(topic);
         return ResponseEntity
                 .created(URI.create("/api/topics/" + saved.getId()))
@@ -73,7 +74,7 @@ public class TopicController {
     @PutMapping("/{id}")
     public ResponseEntity<Topic> update(
             @Parameter(description = "ID du topic", example = "1") @PathVariable Long id,
-            @RequestBody Topic details) {
+            @Valid @RequestBody Topic details) {
         return ResponseEntity.ok(topicService.update(id, details));
     }
 
