@@ -71,15 +71,11 @@ export function resolveRound(state) {
     const leftCorrect = state.leftAnswer === state.currentQuestion.a;
     const rightCorrect = state.rightAnswer === state.currentQuestion.a;
 
-    if (state.leftAnswer === null) {
-        state.feedbackParts.push('Gauche: temps ecoule');
-    } else if (leftCorrect) {
+    if (state.leftAnswer !== null && leftCorrect) {
         state.rightHp = Math.max(0, state.rightHp - 1);
     }
 
-    if (state.rightAnswer === null) {
-        state.feedbackParts.push('Droite: temps ecoule');
-    } else if (rightCorrect) {
+    if (state.rightAnswer !== null && rightCorrect) {
         state.leftHp = Math.max(0, state.leftHp - 1);
     }
 

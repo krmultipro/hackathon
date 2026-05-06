@@ -69,7 +69,7 @@ export default class MenuScene extends Phaser.Scene {
       .text(
         0,
         0,
-        "Releve des duels eclairs, monte en ELO et transforme tes cours en terrain de jeu.",
+        "Relève des duels éclairs, monte en ELO et transforme tes cours en terrain de jeu.",
         {
           font: "26px Arial",
           fill: "#d6e6f5",
@@ -80,7 +80,7 @@ export default class MenuScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     this.heroHint = this.add
-      .text(0, 0, "Choisis ton defi du jour", {
+      .text(0, 0, "Choisis ton défi du jour", {
         font: "bold 20px Arial",
         fill: "#f2c94c",
       })
@@ -89,8 +89,8 @@ export default class MenuScene extends Phaser.Scene {
 
   _createStatChips() {
     this.statChips = [
-      this._createChip("Quiz rapides", MENU_THEME.cyan),
-      this._createChip("Duel arena", MENU_THEME.coral),
+      this._createChip("Fiche de révision", MENU_THEME.cyan),
+      this._createChip("Duel aréna", MENU_THEME.coral),
       this._createChip("Progression ELO", MENU_THEME.yellow),
     ];
   }
@@ -201,7 +201,7 @@ export default class MenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     this.cornerLabel = this.add
-      .text(0, 0, "College Battle Mode", {
+      .text(0, 0, "", {
         font: "bold 18px Arial",
         fill: "#c3d6ea",
       })

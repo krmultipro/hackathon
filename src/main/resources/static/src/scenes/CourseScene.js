@@ -29,7 +29,7 @@ export default class CourseScene extends Phaser.Scene {
       .setStrokeStyle(2, COURSE_THEME.line, 0.6);
 
     this.titleText = this.add
-      .text(0, 0, "Choisis ta matiere", {
+      .text(0, 0, "Choisis ta matière", {
         font: "900 52px Arial",
         fill: "#f7fbff",
         stroke: "#10203a",
@@ -55,15 +55,15 @@ export default class CourseScene extends Phaser.Scene {
     this.mathCard = this._createSubjectCard({
       accent: COURSE_THEME.cyan,
       eyebrow: "LOGIQUE",
-      title: "Mathematiques",
-      description: "Un parcours clair pour revoir les bases, s entrainer et gagner en assurance.",
+      title: "Mathématiques",
+      description: "Un parcours clair pour revoir les bases, s'entraîner et gagner en assurance.",
     });
 
     this.frenchCard = this._createSubjectCard({
       accent: COURSE_THEME.yellow,
       eyebrow: "LANGUE",
-      title: "Francais",
-      description: "Un parcours clair pour reviser orthographe, grammaire et expression efficacement.",
+      title: "Français",
+      description: "Un parcours clair pour réviser orthographe, grammaire et expression efficacement.",
     });
 
     this.backButton = this.add
