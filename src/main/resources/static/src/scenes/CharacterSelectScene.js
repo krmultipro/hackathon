@@ -100,9 +100,6 @@ export default class CharacterSelectScene extends Phaser.Scene {
             ? { cx: width / 2, top: height * 0.56, bottom: height * 0.94 }
             : { cx: (3 * width) / 4, top: height * 0.14, bottom: height * 0.92 };
 
-        this.p1Title.setPosition(p1Area.cx, p1Area.top).setStyle({ font: `bold ${headingSize}px Arial` });
-        this.p2Title.setPosition(p2Area.cx, p2Area.top).setStyle({ font: `bold ${headingSize}px Arial` });
-
         const p1Gap = isMobile ? width * 0.2 : width * 0.08;
         const p2Gap = isMobile ? width * 0.2 : width * 0.08;
         this._boyP1x = p1Area.cx - p1Gap;
@@ -123,13 +120,28 @@ export default class CharacterSelectScene extends Phaser.Scene {
         const scaleP2Boy  = targetCharH / srcP2Boy.height;
         const scaleP2Girl = targetCharH / srcP2Girl.height;
 
-        this.p1BoyImg.setPosition(this._boyP1x, p1CharY).setScale(scaleP1Boy);
-        this.p1GirlImg.setPosition(this._girlP1x, p1CharY).setScale(scaleP1Girl);
-        this.p2BoyImg.setPosition(this._boyP2x, p2CharY).setScale(scaleP2Boy);
-        this.p2GirlImg.setPosition(this._girlP2x, p2CharY).setScale(scaleP2Girl);
+        this.p1BoyImg.setPosition(this._boyP1x, p1CharY).setScale(scaleP1Boy).setAngle(isMobile ? 180 : 0);
+        this.p1GirlImg.setPosition(this._girlP1x, p1CharY).setScale(scaleP1Girl).setAngle(isMobile ? 180 : 0);
+        this.p2BoyImg.setPosition(this._boyP2x, p2CharY).setScale(scaleP2Boy).setAngle(0);
+        this.p2GirlImg.setPosition(this._girlP2x, p2CharY).setScale(scaleP2Girl).setAngle(0);
 
-        this.p1StatusText.setPosition(p1Area.cx, p1Area.bottom - 8).setStyle({ font: `${hintSize}px Arial` });
-        this.p2StatusText.setPosition(p2Area.cx, p2Area.bottom - 24).setStyle({ font: `${hintSize}px Arial` });
+        this.p1Title
+            .setPosition(p1Area.cx, isMobile ? p1Area.bottom - 34 : p1Area.top)
+            .setStyle({ font: `bold ${headingSize}px Arial` })
+            .setAngle(isMobile ? 180 : 0);
+        this.p2Title
+            .setPosition(p2Area.cx, p2Area.top)
+            .setStyle({ font: `bold ${headingSize}px Arial` })
+            .setAngle(0);
+
+        this.p1StatusText
+            .setPosition(p1Area.cx, isMobile ? p1Area.top + 6 : p1Area.bottom - 8)
+            .setStyle({ font: `${hintSize}px Arial` })
+            .setAngle(isMobile ? 180 : 0);
+        this.p2StatusText
+            .setPosition(p2Area.cx, p2Area.bottom - 24)
+            .setStyle({ font: `${hintSize}px Arial` })
+            .setAngle(0);
         this.backButton
             .setPosition(12, height - (isMobile ? 30 : 20))
             .setStyle({
