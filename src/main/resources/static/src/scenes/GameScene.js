@@ -39,6 +39,7 @@ export default class GameScene extends Phaser.Scene {
         });
 
         this.bg = this.add.rectangle(0, 0, 1, 1, 0x101626).setOrigin(0);
+        this.mobileDivider = this.add.rectangle(0, 0, 1, 1, 0x334766).setAlpha(0.45);
 
         const p1tex = this.p1char === 'boy' ? 'p1boy' : 'p1girl';
         const p2tex = this.p2char === 'boy' ? 'p2boy' : 'p2girl';
@@ -66,6 +67,24 @@ export default class GameScene extends Phaser.Scene {
             align: 'center',
             wordWrap: { width: 400 }
         }).setOrigin(0.5, 0);
+        this.questionTextBottom = this.add.text(0, 0, '', {
+            font: '26px Arial',
+            fill: '#ffffff',
+            align: 'center',
+            wordWrap: { width: 400 }
+        }).setOrigin(0.5, 0);
+        this.winTextTop = this.add.text(0, 0, '', {
+            font: '24px Arial',
+            fill: '#56ccf2',
+            align: 'center',
+            wordWrap: { width: 400 }
+        }).setOrigin(0.5);
+        this.winTextBottom = this.add.text(0, 0, '', {
+            font: '24px Arial',
+            fill: '#56ccf2',
+            align: 'center',
+            wordWrap: { width: 400 }
+        }).setOrigin(0.5);
 
         this.choiceTexts = [];
         for (let i = 0; i < 4; i += 1) {
@@ -88,20 +107,31 @@ export default class GameScene extends Phaser.Scene {
             fill: '#aaaaaa'
         }).setOrigin(0.5);
 
-        this.backButton = this.add.text(0, 0, '[ RETOUR ]', {
-            font: '18px Arial',
-            fill: '#aaaaaa'
+        this.backButton = this.add.text(0, 0, 'Retour', {
+            font: 'bold 18px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#1f4ed8',
+            padding: { x: 18, y: 10 }
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
-        this.backButton.on('pointerover', () => this.backButton.setStyle({ fill: '#ffffff' }));
-        this.backButton.on('pointerout', () => this.backButton.setStyle({ fill: '#aaaaaa' }));
+        this.backButton.on('pointerover', () => this.backButton.setStyle({ backgroundColor: '#2563eb' }));
+        this.backButton.on('pointerout', () => this.backButton.setStyle({ backgroundColor: '#1f4ed8' }));
         this.backButton.on('pointerdown', () => this.goBack());
 
         this.keys = this.input.keyboard.addKeys({
-            esc: Phaser.Input.Keyboard.KeyCodes.ESC
+            esc: Phaser.Input.Keyboard.KeyCodes.ESC,
+            leftA: Phaser.Input.Keyboard.KeyCodes.A,
+            leftB: Phaser.Input.Keyboard.KeyCodes.Z,
+            leftC: Phaser.Input.Keyboard.KeyCodes.E,
+            leftD: Phaser.Input.Keyboard.KeyCodes.R,
+            rightA: Phaser.Input.Keyboard.KeyCodes.U,
+            rightB: Phaser.Input.Keyboard.KeyCodes.I,
+            rightC: Phaser.Input.Keyboard.KeyCodes.O,
+            rightD: Phaser.Input.Keyboard.KeyCodes.P
         });
 
         this.input.keyboard.on('keydown-ESC', () => this.goBack());
+        this._registerDesktopAnswerShortcuts();
         this.escText = this.add.text(0, 0, '[ESC] Retour', {
             font: '14px Arial',
             fill: '#aaaaaa'
@@ -147,23 +177,34 @@ export default class GameScene extends Phaser.Scene {
     }
 
     _layout(width, height) {
-        const isMobile = width < 900 || height > width;
+        const isMobile = this._isMobileLayout(width, height);
         const base = Math.min(width, height);
         const fs = (n, min, max) => `${Phaser.Math.Clamp(Math.round(n * base / 600), min, max)}px Arial`;
 
         this.bg.setSize(width, height);
+        this.mobileDivider.setVisible(isMobile);
+        if (isMobile) {
+            this.mobileDivider.setPosition(width / 2, height / 2).setSize(width, 4);
+        }
 
         const hSize = Phaser.Math.Clamp(Math.round(base * 0.033), 12, 22);
         this._heartSize = hSize;
-        this.leftHpGfx.setPosition(12, 10);
-        this.rightHpGfx.setPosition(width - 12, 10);
-        this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, hSize, false);
+        const heartGap = hSize * 0.3;
+        const heartGroupW = this.matchState.maxHp * hSize + (this.matchState.maxHp - 1) * heartGap;
+        this.leftHpGfx.setPosition(
+            isMobile ? 12 + heartGroupW : 12,
+            isMobile ? 10 + hSize : 10
+        );
+        this.rightHpGfx.setPosition(width - 12, isMobile ? height - hSize - 10 : 10);
+        this.leftHpGfx.setAngle(isMobile ? 180 : 0);
+        this.rightHpGfx.setAngle(0);
+        this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, hSize, isMobile);
         this._drawHearts(this.rightHpGfx, this.matchState.rightHp, this.matchState.maxHp, hSize, true);
 
-        const barW = width * 0.5;
+        const barW = width * (isMobile ? 0.62 : 0.5);
         const barH = Phaser.Math.Clamp(Math.round(height * 0.028), 12, 22);
-        const barY = height * 0.165;
-        const turnY = Math.round((10 + hSize + barY) / 2);
+        const barY = isMobile ? height * 0.5 : height * 0.165;
+        const turnY = isMobile ? Math.round(barY - barH - 24) : Math.round((10 + hSize + barY) / 2);
         this.turnText.setPosition(width / 2, turnY).setStyle({ font: fs(24, 14, 30) });
         this._timerBarW = barW;
         this._timerBarH = barH;
@@ -176,29 +217,29 @@ export default class GameScene extends Phaser.Scene {
         this.timerBarBg.fillRoundedRect(width / 2 - barW / 2 - 2, barY - barH / 2 - 2, barW + 4, barH + 4, r + 1);
         this.timerBarBg.lineStyle(1.5, 0x444477, 1);
         this.timerBarBg.strokeRoundedRect(width / 2 - barW / 2 - 2, barY - barH / 2 - 2, barW + 4, barH + 4, r + 1);
-        this.escText.setPosition(width - 12, height - 24).setStyle({ font: fs(14, 10, 18) });
+        this.escText.setPosition(width - 12, isMobile ? height / 2 - 22 : height - 24).setStyle({ font: fs(14, 10, 18) });
 
-        const targetCharH = Phaser.Math.Clamp(Math.round((isMobile ? 0.28 : 0.42) * height), 130, 320);
+        const targetCharH = Phaser.Math.Clamp(Math.round((isMobile ? 0.18 : 0.42) * height), 100, 320);
         const leftImg = this.leftFighter.texture.getSourceImage();
         const rightImg = this.rightFighter.texture.getSourceImage();
         const scaleL = targetCharH / leftImg.height;
         const scaleR = targetCharH / rightImg.height;
 
         const btnPad = 10;
-        const btnH = Math.min(isMobile ? 72 : 68, height * (isMobile ? 0.09 : 0.1));
-        const gridH = 2 * btnH + 3 * btnPad;
-        const gridTop = height - gridH - btnPad;
+        const btnH = Math.min(isMobile ? 58 : 68, height * (isMobile ? 0.072 : 0.1));
+        const gridRows = isMobile ? 2 : 1;
+        const gridH = gridRows * btnH + (gridRows + 1) * btnPad;
         const sideW = width * (isMobile ? 0.46 : 0.22);
+        const fighterYTop = isMobile ? height * 0.28 : height - gridH - btnPad - targetCharH / 2 - 28;
+        const fighterYBottom = isMobile ? height * 0.72 : fighterYTop;
+        const fighterXLeft = isMobile ? width / 2 : sideW / 2;
+        const fighterXRight = isMobile ? width / 2 : width - sideW / 2;
 
-        const fighterY = gridTop - targetCharH / 2 - 28;
-        const fighterXLeft = sideW / 2;
-        const fighterXRight = width - sideW / 2;
+        this.leftFighter.setPosition(fighterXLeft, fighterYTop).setScale(scaleL).setAngle(isMobile ? 180 : 0);
+        this.rightFighter.setPosition(fighterXRight, fighterYBottom).setScale(scaleR).setFlipX(!isMobile).setAngle(0);
 
-        this.leftFighter.setPosition(fighterXLeft, fighterY).setScale(scaleL);
-        this.rightFighter.setPosition(fighterXRight, fighterY).setScale(scaleR).setFlipX(true);
-
-        const blockTop = isMobile ? height * 0.34 : height * 0.28;
-        const blockWidth = isMobile ? width * 0.8 : width * 0.5;
+        const blockTop = isMobile ? height * 0.45 : height * 0.28;
+        const blockWidth = isMobile ? width * 0.72 : width * 0.5;
 
         this.sceneBg.setPosition(width / 2, height / 2);
         const bgScaleW = width / this.sceneBg.width;
@@ -209,6 +250,25 @@ export default class GameScene extends Phaser.Scene {
         this.questionText
             .setPosition(width / 2, blockTop)
             .setStyle({ font: fs(26, 15, 32) })
+            .setAngle(isMobile ? 180 : 0)
+            .setWordWrapWidth(blockWidth);
+        this.questionTextBottom
+            .setVisible(isMobile)
+            .setPosition(width / 2, height * 0.55)
+            .setStyle({ font: fs(26, 15, 32) })
+            .setAngle(0)
+            .setWordWrapWidth(blockWidth);
+        this.winTextTop
+            .setVisible(isMobile)
+            .setPosition(width / 2, this._timerBarY - 34)
+            .setStyle({ font: fs(22, 14, 28) })
+            .setAngle(180)
+            .setWordWrapWidth(blockWidth);
+        this.winTextBottom
+            .setVisible(isMobile)
+            .setPosition(width / 2, this._timerBarY + 34)
+            .setStyle({ font: fs(22, 14, 28) })
+            .setAngle(0)
             .setWordWrapWidth(blockWidth);
 
         const gap = isMobile ? 32 : 42;
@@ -219,17 +279,21 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.feedbackText
-            .setPosition(width / 2, blockTop + (isMobile ? 200 : 250))
+            .setPosition(width / 2, blockTop + (isMobile ? 120 : 250))
             .setStyle({ font: fs(20, 12, 24) })
             .setWordWrapWidth(blockWidth);
 
         this.helpText
-            .setPosition(width / 2, blockTop + (isMobile ? 230 : 300))
-            .setStyle({ font: fs(16, 10, 20) });
+            .setPosition(width / 2, blockTop + (isMobile ? 148 : 300))
+            .setStyle({ font: fs(16, 10, 20) })
+            .setText(isMobile ? '' : 'PC: J1 A/Z/E/R | J2 U/I/O/P');
 
         this.backButton
-            .setPosition(12, height - 20)
-            .setStyle({ font: fs(16, 11, 20) });
+            .setPosition(12, isMobile ? height / 2 + 26 : height - 20)
+            .setStyle({
+                font: `bold ${Phaser.Math.Clamp(Math.round((isMobile ? 18 : 16) * base / 600), isMobile ? 16 : 11, isMobile ? 24 : 20)}px Arial`,
+                padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
+            });
     }
 
     update() {
@@ -255,7 +319,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     updateUi() {
-        this.turnText.setText(getPlayerStateText(this.matchState));
+        this.turnText.setText('');
         this._drawHearts(this.leftHpGfx, this.matchState.leftHp, this.matchState.maxHp, this._heartSize || 16, false);
         this._drawHearts(this.rightHpGfx, this.matchState.rightHp, this.matchState.maxHp, this._heartSize || 16, true);
 
@@ -286,6 +350,9 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.questionText.setText(this.matchState.currentQuestion ? this.matchState.currentQuestion.q : '');
+        this.questionTextBottom.setText(this.matchState.currentQuestion ? this.matchState.currentQuestion.q : '');
+        this.winTextTop.setText('');
+        this.winTextBottom.setText('');
 
         for (let i = 0; i < 4; i += 1) {
             this.choiceTexts[i].setText('');
@@ -349,6 +416,36 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    _registerDesktopAnswerShortcuts() {
+        const bindings = [
+            { key: 'keydown-A', side: 'left', answerIndex: 0 },
+            { key: 'keydown-Z', side: 'left', answerIndex: 1 },
+            { key: 'keydown-E', side: 'left', answerIndex: 2 },
+            { key: 'keydown-R', side: 'left', answerIndex: 3 },
+            { key: 'keydown-U', side: 'right', answerIndex: 0 },
+            { key: 'keydown-I', side: 'right', answerIndex: 1 },
+            { key: 'keydown-O', side: 'right', answerIndex: 2 },
+            { key: 'keydown-P', side: 'right', answerIndex: 3 }
+        ];
+
+        bindings.forEach(({ key, side, answerIndex }) => {
+            this.input.keyboard.on(key, () => {
+                if (this._isMobileLayout()) {
+                    return;
+                }
+
+                const changed = submitAnswer(this.matchState, side, answerIndex);
+                if (changed) {
+                    this._checkBothAnswered();
+                }
+            });
+        });
+    }
+
+    _isMobileLayout(width = this.scale.width, height = this.scale.height) {
+        return width < 900 || height > width;
+    }
+
     _drawHearts(gfx, current, max, size, rtl) {
         gfx.clear();
         const gap = size * 0.3;
@@ -399,33 +496,40 @@ export default class GameScene extends Phaser.Scene {
 
     _createAnswerButtons(width, height) {
         if (this.p1Buttons) {
-            [...this.p1Buttons, ...this.p2Buttons].forEach(({ gfx, lbl, zone }) => {
+            [...this.p1Buttons, ...this.p2Buttons].forEach(({ gfx, lbl, keyLbl, zone }) => {
                 gfx.destroy();
                 lbl.destroy();
+                if (keyLbl) {
+                    keyLbl.destroy();
+                }
                 zone.destroy();
             });
         }
 
-        const isMobile = width < 900 || height > width;
+        const isMobile = this._isMobileLayout(width, height);
         const pad = 10;
-        const cols = 2;
-        const sideW = width * (isMobile ? 0.46 : 0.22);
+        const cols = isMobile ? 2 : 4;
+        const rows = isMobile ? 2 : 1;
+        const sideW = width * (isMobile ? 0.56 : 0.22);
         const btnW = (sideW - pad * (cols + 1)) / cols;
-        const btnH = Math.min(isMobile ? 72 : 68, height * (isMobile ? 0.09 : 0.1));
-        const gridH = 2 * btnH + 3 * pad;
-        const gridTop = height - gridH - pad;
+        const btnH = Math.min(isMobile ? 58 : 68, height * (isMobile ? 0.072 : 0.1));
+        const gridH = rows * btnH + (rows + 1) * pad;
+        const topGridTop = isMobile ? height * 0.05 : height - gridH - pad;
+        const bottomGridTop = isMobile ? height - gridH - height * 0.05 : height - gridH - pad;
+        const leftKeys = ['A', 'Z', 'E', 'R'];
+        const rightKeys = ['U', 'I', 'O', 'P'];
         const baseFontPx = Math.round(btnH * (this.subject === 'fr' ? 0.33 : 0.44));
         const minFontPx = Math.max(12, Math.round(btnH * 0.22));
         const fontSize = `bold ${baseFontPx}px Arial`;
 
         this._answerBtnTextBasePx = baseFontPx;
         this._answerBtnTextMinPx = minFontPx;
-        this._answerBtnTextMaxWidth = btnW - 16;
+        this._answerBtnTextMaxWidth = btnW - 28;
 
         this.p1Buttons = [];
         this.p2Buttons = [];
 
-        const makeBtn = (cx, cy, fillNorm, fillHover, stroke, onPress) => {
+        const makeBtn = (cx, cy, fillNorm, fillHover, stroke, keyText, onPress) => {
             const gfx = this.add.graphics();
             this._drawBtn(gfx, cx, cy, btnW, btnH, fillNorm, stroke, 1);
 
@@ -442,26 +546,49 @@ export default class GameScene extends Phaser.Scene {
                 onPress();
             });
 
-            const lbl = this.add.text(cx, cy, '', { font: fontSize, fill: '#ffffff' }).setOrigin(0.5).setDepth(1);
-            return { gfx, lbl, zone };
+            const lbl = this.add.text(cx, cy, '', {
+                font: fontSize,
+                fill: '#ffffff',
+                align: 'center'
+            }).setOrigin(0.5).setDepth(1);
+
+            let keyLbl = null;
+            if (!isMobile) {
+                keyLbl = this.add.text(cx, cy - btnH / 2 - 12, keyText, {
+                    font: 'bold 14px Arial',
+                    fill: '#f2c94c',
+                    backgroundColor: '#0f172a',
+                    padding: { x: 8, y: 4 }
+                }).setOrigin(0.5).setDepth(1);
+            }
+
+            return { gfx, lbl, keyLbl, zone };
         };
 
         for (let i = 0; i < 4; i += 1) {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const cy = gridTop + row * (btnH + pad) + btnH / 2;
+            const col = isMobile ? i % cols : i;
+            const row = isMobile ? Math.floor(i / cols) : 0;
+            const cy1 = topGridTop + row * (btnH + pad) + btnH / 2;
+            const cy2 = bottomGridTop + row * (btnH + pad) + btnH / 2;
 
-            const cx1 = pad + col * (btnW + pad) + btnW / 2;
-            const btn1 = makeBtn(cx1, cy, 0x1a3d7a, 0x2a5db0, 0x56ccf2, () => {
+            const cx1 = isMobile
+                ? width / 2 - sideW / 2 + pad + col * (btnW + pad) + btnW / 2
+                : pad + col * (btnW + pad) + btnW / 2;
+            const btn1 = makeBtn(cx1, cy1, 0x1a3d7a, 0x2a5db0, 0x56ccf2, leftKeys[i], () => {
                 const changed = submitAnswer(this.matchState, 'left', i);
                 if (changed) {
                     this._checkBothAnswered();
                 }
             });
+            if (isMobile) {
+                btn1.lbl.setAngle(180);
+            }
             this.p1Buttons.push(btn1);
 
-            const cx2 = width - pad - (cols - 1 - col) * (btnW + pad) - btnW / 2;
-            const btn2 = makeBtn(cx2, cy, 0x7a1a1a, 0xb02a2a, 0xff7675, () => {
+            const cx2 = isMobile
+                ? width / 2 - sideW / 2 + pad + col * (btnW + pad) + btnW / 2
+                : width - pad - (cols - 1 - col) * (btnW + pad) - btnW / 2;
+            const btn2 = makeBtn(cx2, cy2, 0x7a1a1a, 0xb02a2a, 0xff7675, rightKeys[i], () => {
                 const changed = submitAnswer(this.matchState, 'right', i);
                 if (changed) {
                     this._checkBothAnswered();
@@ -478,10 +605,21 @@ export default class GameScene extends Phaser.Scene {
             return;
         }
 
+        const isMobile = this._isMobileLayout();
+        const leftKeys = ['A', 'Z', 'E', 'R'];
+        const rightKeys = ['U', 'I', 'O', 'P'];
+
         for (let i = 0; i < 4; i += 1) {
             const txt = this.matchState.currentQuestion.choices[i];
-            this._fitAnswerLabel(this.p1Buttons[i].lbl, txt);
-            this._fitAnswerLabel(this.p2Buttons[i].lbl, txt);
+            const leftLabel = txt;
+            const rightLabel = txt;
+            this._fitAnswerLabel(this.p1Buttons[i].lbl, leftLabel);
+            this._fitAnswerLabel(this.p2Buttons[i].lbl, rightLabel);
+
+            if (!isMobile) {
+                this.p1Buttons[i].keyLbl.setText(leftKeys[i]);
+                this.p2Buttons[i].keyLbl.setText(rightKeys[i]);
+            }
         }
     }
 
@@ -492,11 +630,13 @@ export default class GameScene extends Phaser.Scene {
 
         label.setStyle({ font: `bold ${size}px Arial` });
         label.setText(text);
+        label.setWordWrapWidth(maxWidth);
 
         while (label.width > maxWidth && size > minSize) {
             size -= 1;
             label.setStyle({ font: `bold ${size}px Arial` });
             label.setText(text);
+            label.setWordWrapWidth(maxWidth);
         }
     }
 
@@ -515,10 +655,37 @@ export default class GameScene extends Phaser.Scene {
     endGame() {
         this.matchState.roundLocked = true;
         this.timerEvent.remove(false);
-        this.questionText.setText(`Victoire: ${getWinnerLabel(this.matchState)}`);
+        const winner = getWinnerLabel(this.matchState);
         this.choiceTexts.forEach((choiceText) => choiceText.setText(''));
-        this.turnText.setText('Partie terminee');
-        this.feedbackText.setText('Appuyez sur ESC ou utilisez le bouton RETOUR');
+        this.feedbackText.setText('');
+
+        if (this._isMobileLayout()) {
+            this.turnText.setText('');
+
+            this.questionText
+                .setText('')
+                .setAngle(180)
+                .setPosition(this.scale.width / 2, this._timerBarY - 66)
+                .setOrigin(0.5, 0.5);
+
+            this.questionTextBottom
+                .setText('')
+                .setAngle(0)
+                .setPosition(this.scale.width / 2, this._timerBarY + 42)
+                .setOrigin(0.5, 0.5);
+
+            this.winTextTop
+                .setText(winner === 'Joueur bleu' ? 'Vous avez gagne' : winner === 'Match nul' ? 'Match nul' : '')
+                .setStyle({ fill: '#ffffff' });
+            this.winTextBottom
+                .setText(winner === 'Joueur rouge' ? 'Vous avez gagne' : winner === 'Match nul' ? 'Match nul' : '')
+                .setStyle({ fill: '#ffffff' });
+        } else {
+            this.turnText.setText('Partie terminee').setStyle({ fill: '#f2c94c' });
+            this.questionText.setText(`Victoire: ${winner}`).setAngle(0);
+            this.questionTextBottom.setText('');
+            this.winTextTop.setText('');
+            this.winTextBottom.setText('');
+        }
     }
 }
-

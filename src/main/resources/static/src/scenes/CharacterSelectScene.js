@@ -48,13 +48,15 @@ export default class CharacterSelectScene extends Phaser.Scene {
         this.p1Frame = this.add.rectangle(0, 0, 10, 10, 0x2d9cdb).setAlpha(0).setDepth(-1);
         this.p2Frame = this.add.rectangle(0, 0, 10, 10, 0xeb5757).setAlpha(0).setDepth(-1);
 
-        this.backButton = this.add.text(0, 0, '[ RETOUR ]', {
-            font: '18px Arial',
-            fill: '#aaaaaa'
+        this.backButton = this.add.text(0, 0, 'Retour', {
+            font: 'bold 18px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#1f4ed8',
+            padding: { x: 18, y: 10 }
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
-        this.backButton.on('pointerover', () => this.backButton.setStyle({ fill: '#ffffff' }));
-        this.backButton.on('pointerout', () => this.backButton.setStyle({ fill: '#aaaaaa' }));
+        this.backButton.on('pointerover', () => this.backButton.setStyle({ backgroundColor: '#2563eb' }));
+        this.backButton.on('pointerout', () => this.backButton.setStyle({ backgroundColor: '#1f4ed8' }));
         this.backButton.on('pointerdown', () => this.scene.start(this.previousScene));
 
         this.input.keyboard.on('keydown-ESC', () => this.scene.start(this.previousScene));
@@ -98,9 +100,6 @@ export default class CharacterSelectScene extends Phaser.Scene {
             ? { cx: width / 2, top: height * 0.56, bottom: height * 0.94 }
             : { cx: (3 * width) / 4, top: height * 0.14, bottom: height * 0.92 };
 
-        this.p1Title.setPosition(p1Area.cx, p1Area.top).setStyle({ font: `bold ${headingSize}px Arial` });
-        this.p2Title.setPosition(p2Area.cx, p2Area.top).setStyle({ font: `bold ${headingSize}px Arial` });
-
         const p1Gap = isMobile ? width * 0.2 : width * 0.08;
         const p2Gap = isMobile ? width * 0.2 : width * 0.08;
         this._boyP1x = p1Area.cx - p1Gap;
@@ -121,14 +120,34 @@ export default class CharacterSelectScene extends Phaser.Scene {
         const scaleP2Boy  = targetCharH / srcP2Boy.height;
         const scaleP2Girl = targetCharH / srcP2Girl.height;
 
-        this.p1BoyImg.setPosition(this._boyP1x, p1CharY).setScale(scaleP1Boy);
-        this.p1GirlImg.setPosition(this._girlP1x, p1CharY).setScale(scaleP1Girl);
-        this.p2BoyImg.setPosition(this._boyP2x, p2CharY).setScale(scaleP2Boy);
-        this.p2GirlImg.setPosition(this._girlP2x, p2CharY).setScale(scaleP2Girl);
+        this.p1BoyImg.setPosition(this._boyP1x, p1CharY).setScale(scaleP1Boy).setAngle(isMobile ? 180 : 0);
+        this.p1GirlImg.setPosition(this._girlP1x, p1CharY).setScale(scaleP1Girl).setAngle(isMobile ? 180 : 0);
+        this.p2BoyImg.setPosition(this._boyP2x, p2CharY).setScale(scaleP2Boy).setAngle(0);
+        this.p2GirlImg.setPosition(this._girlP2x, p2CharY).setScale(scaleP2Girl).setAngle(0);
 
-        this.p1StatusText.setPosition(p1Area.cx, p1Area.bottom - 8).setStyle({ font: `${hintSize}px Arial` });
-        this.p2StatusText.setPosition(p2Area.cx, p2Area.bottom - 8).setStyle({ font: `${hintSize}px Arial` });
-        this.backButton.setPosition(12, height - 20).setStyle({ font: `${hintSize}px Arial` });
+        this.p1Title
+            .setPosition(p1Area.cx, isMobile ? p1Area.bottom - 34 : p1Area.top)
+            .setStyle({ font: `bold ${headingSize}px Arial` })
+            .setAngle(isMobile ? 180 : 0);
+        this.p2Title
+            .setPosition(p2Area.cx, p2Area.top)
+            .setStyle({ font: `bold ${headingSize}px Arial` })
+            .setAngle(0);
+
+        this.p1StatusText
+            .setPosition(p1Area.cx, isMobile ? p1Area.top + 6 : p1Area.bottom - 8)
+            .setStyle({ font: `${hintSize}px Arial` })
+            .setAngle(isMobile ? 180 : 0);
+        this.p2StatusText
+            .setPosition(p2Area.cx, p2Area.bottom - 24)
+            .setStyle({ font: `${hintSize}px Arial` })
+            .setAngle(0);
+        this.backButton
+            .setPosition(12, height - (isMobile ? 30 : 20))
+            .setStyle({
+                font: `bold ${Math.max(isMobile ? 18 : hintSize, hintSize)}px Arial`,
+                padding: { x: isMobile ? 22 : 18, y: isMobile ? 12 : 10 }
+            });
 
         const selP1src = this.p1choice === 'girl' ? srcP1Girl : srcP1Boy;
         const selP1scale = this.p1choice === 'girl' ? scaleP1Girl : scaleP1Boy;
